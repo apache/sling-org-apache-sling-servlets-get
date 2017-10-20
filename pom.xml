@@ -38,9 +38,9 @@
     </description>
 
     <scm>
-        <connection>scm:svn:http://svn.apache.org/repos/asf/sling/trunk/bundles/servlets/get</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/sling/trunk/bundles/servlets/get</developerConnection>
-        <url>http://svn.apache.org/viewvc/sling/trunk/bundles/servlets/get</url>
+        <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-servlets-get.git</conncetion>
+        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-servlets-get.git</developerConnection>
+        <url>https://gitbox.apache.org/repos/asf?p=sling-org-apache-sling-servlets-get.git</url>
     </scm>
 
     <properties>
