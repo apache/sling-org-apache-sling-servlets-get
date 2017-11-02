@@ -17,6 +17,7 @@
 package org.apache.sling.servlets.get.impl.helpers;
 
 import java.io.IOException;
+import java.io.StringWriter;
 
 import javax.json.Json;
 import javax.json.stream.JsonGenerator;
@@ -116,22 +117,26 @@ public class JsonRendererServlet extends SlingSafeMethodsServlet {
                     // If no rendering options, use the plain toString() method, for
                     // backwards compatibility. Output might be slightly different
                     // with prettyPrint and no options
-                    Json.createGenerator(resp.getWriter()).write(traversor.getJSONObject()).close();
+                    StringWriter writer = new StringWriter();
+                    Json.createGenerator(writer).write(traversor.getJSONObject()).close();
+                    resp.getWriter().write(writer.toString());
                 }
 
             } else {
                 // We are not allowed to do the dump.
-                // Send a 300
+                // Send a 300 
                 String tidyUrl = (tidy) ? "tidy." : "";
                 resp.setStatus(HttpServletResponse.SC_MULTIPLE_CHOICES);
-                JsonGenerator writer = Json.createGenerator(resp.getWriter());
-                writer.writeStartArray();
+                StringWriter writer = new StringWriter();
+                JsonGenerator json = Json.createGenerator(writer);
+                json.writeStartArray();
                 while (allowedLevel >= 0) {
-                    writer.write(r.getResourceMetadata().getResolutionPath() + "." + tidyUrl + allowedLevel + ".json");
+                    json.write(r.getResourceMetadata().getResolutionPath() + "." + tidyUrl + allowedLevel + ".json");
                     allowedLevel--;
                 }
-                writer.writeEnd();
-                writer.close();
+                json.writeEnd();
+                json.close();
+                resp.getWriter().write(writer.toString());
             }
         } catch (Exception je) {
             reportException(je);
