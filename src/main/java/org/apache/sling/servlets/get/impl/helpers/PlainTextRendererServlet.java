@@ -64,9 +64,9 @@ public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
         if ( map != null ) {
             dump(pw, r, map);
         } else if ( r.adaptTo(String.class) != null ) {
-            printPropertyValue(pw, ResourceUtil.getName(r), r.adaptTo(String.class), false);
+            printPropertyValue(pw, r.getName(), r.adaptTo(String.class), false);
         } else if ( r.adaptTo(String[].class) != null ) {
-            printPropertyValue(pw, ResourceUtil.getName(r), r.adaptTo(String[].class), false);
+            printPropertyValue(pw, r.getName(), r.adaptTo(String[].class), false);
         } else {
             resp.sendError(HttpServletResponse.SC_NO_CONTENT);
         }
@@ -93,7 +93,7 @@ public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
         pw.println("Resource metadata: " + r.getResourceMetadata());
         pw.println("Resource type: " + r.getResourceType());
 
-        String resourceSuperType = ResourceUtil.findResourceSuperType(r);
+        String resourceSuperType = r.getResourceResolver().getParentResourceType(r);
         if (resourceSuperType == null) {
             resourceSuperType = "-";
         }

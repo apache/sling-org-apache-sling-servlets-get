@@ -34,7 +34,6 @@ import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
 
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.ValueMap;
 
 public abstract class JsonObjectCreator {
@@ -66,7 +65,7 @@ public abstract class JsonObjectCreator {
             if (value != null) {
 
                 // single value property or just plain String resource or...
-                obj.add(ResourceUtil.getName(resource), value.toString());
+                obj.add(resource.getName(), value.toString());
 
             } else {
 
@@ -78,7 +77,7 @@ public abstract class JsonObjectCreator {
                     {
                         builder.add(v);
                     }
-                    obj.add(ResourceUtil.getName(resource), builder);
+                    obj.add(resource.getName(), builder);
                 }
 
             }
@@ -101,7 +100,7 @@ public abstract class JsonObjectCreator {
 
         // the child nodes
         if (recursionLevelActive(currentRecursionLevel, maxRecursionLevels)) {
-            final Iterator<Resource> children = ResourceUtil.listChildren(resource);
+            final Iterator<Resource> children = resource.listChildren();
             while (children.hasNext()) {
                 final Resource n = children.next();
                 createSingleResource(n, obj, currentRecursionLevel,
@@ -153,7 +152,7 @@ public abstract class JsonObjectCreator {
     private static void createSingleResource(final Resource n, final JsonObjectBuilder parent,
             final int currentRecursionLevel, final int maxRecursionLevels) {
         if (recursionLevelActive(currentRecursionLevel, maxRecursionLevels)) {
-            parent.add(ResourceUtil.getName(n), create(n, currentRecursionLevel + 1, maxRecursionLevels));
+            parent.add(n.getName(), create(n, currentRecursionLevel + 1, maxRecursionLevels));
         }
     }
 
