@@ -133,8 +133,6 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
     private Map<String, Servlet> rendererMap = new HashMap<>();
 
-    private Servlet streamerServlet;
-
     private int jsonMaximumResults;
 
     /** Additional aliases. */
@@ -156,6 +154,16 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
     @Reference(policyOption = ReferencePolicyOption.GREEDY)
     private XSSAPI xssApi;
+    
+    public static final String EXT_HTML = "html";
+
+    public static final String EXT_TXT = "txt";
+
+    public static final String EXT_JSON = "json";
+
+    public static final String EXT_XML = "xml";
+
+    public static final String EXT_RES = "res";
 
     @Activate
     protected void activate(Config cfg) {
@@ -182,15 +190,15 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
     private Servlet getDefaultRendererServlet(final String type) {
         Servlet servlet = null;
-        if ( StreamRendererServlet.EXT_RES.equals(type) ) {
+        if ( EXT_RES.equals(type) ) {
             servlet = new StreamRendererServlet(index, indexFiles);
-        } else if ( HtmlRendererServlet.EXT_HTML.equals(type) ) {
+        } else if ( EXT_HTML.equals(type) ) {
             servlet = new HtmlRendererServlet(xssApi);
-        } else if ( PlainTextRendererServlet.EXT_TXT.equals(type) ) {
+        } else if ( EXT_TXT.equals(type) ) {
             servlet = new PlainTextRendererServlet();
-        } else if (JsonRendererServlet.EXT_JSON.equals(type) ) {
+        } else if (EXT_JSON.equals(type) ) {
             servlet = new JsonRendererServlet(jsonMaximumResults);
-        } else if ( XMLRendererServlet.EXT_XML.equals(type) ) {
+        } else if ( EXT_XML.equals(type) ) {
             try {
                 servlet = new XMLRendererServlet();
             } catch (Throwable t) {
@@ -215,29 +223,30 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
         // use the servlet for rendering StreamRendererServlet.EXT_RES as the
         // streamer servlet
-        streamerServlet = getDefaultRendererServlet(StreamRendererServlet.EXT_RES);
+        Servlet streamerServlet = getDefaultRendererServlet(EXT_RES);
 
-        // Register renderer servlets
-        rendererMap.put(StreamRendererServlet.EXT_RES, streamerServlet);
-
+        rendererMap.put(null, streamerServlet);
+        
+        rendererMap.put(EXT_RES, streamerServlet);
+        
         if (enableHtml) {
-            rendererMap.put(HtmlRendererServlet.EXT_HTML,
-                    getDefaultRendererServlet(HtmlRendererServlet.EXT_HTML));
+            rendererMap.put(EXT_HTML,
+                    getDefaultRendererServlet(EXT_HTML));
         }
 
         if (enableTxt) {
-            rendererMap.put(PlainTextRendererServlet.EXT_TXT,
-                    getDefaultRendererServlet(PlainTextRendererServlet.EXT_TXT));
+            rendererMap.put(EXT_TXT,
+                    getDefaultRendererServlet(EXT_TXT));
         }
 
         if (enableJson) {
-            rendererMap.put(JsonRendererServlet.EXT_JSON,
-                    getDefaultRendererServlet(JsonRendererServlet.EXT_JSON));
+            rendererMap.put(EXT_JSON,
+                    getDefaultRendererServlet(EXT_JSON));
         }
 
         if (enableXml) {
-            rendererMap.put(XMLRendererServlet.EXT_XML,
-                    getDefaultRendererServlet(XMLRendererServlet.EXT_XML));
+            rendererMap.put(EXT_XML,
+                    getDefaultRendererServlet(EXT_XML));
         }
 
 
@@ -284,11 +293,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
         Servlet rendererServlet;
         String ext = request.getRequestPathInfo().getExtension();
-        if (ext == null) {
-            rendererServlet = streamerServlet;
-        } else {
-            rendererServlet = rendererMap.get(ext);
-        }
+        rendererServlet = rendererMap.get(ext);
 
         // fail if we should not just stream or we cannot support the ext.
         if (rendererServlet == null) {
@@ -334,7 +339,6 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
             }
         }
 
-        streamerServlet = null;
         rendererMap.clear();
 
         super.destroy();

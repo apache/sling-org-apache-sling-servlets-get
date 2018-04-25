@@ -48,10 +48,11 @@ public class DefaultGetServletTest {
 
         @SuppressWarnings("unchecked")
         final Map<String, Servlet> map = (Map<String, Servlet>) field.get(servlet);
-        assertEquals(4, map.size());
-        assertNotNull(map.get("res"));
-        assertNotNull(map.get("html"));
-        assertNotNull(map.get("json"));
+        assertEquals(5, map.size());
+        assertNotNull(map.get(DefaultGetServlet.EXT_RES));
+        assertNotNull(map.get(DefaultGetServlet.EXT_HTML));
+        assertNotNull(map.get(DefaultGetServlet.EXT_JSON));
         assertNotNull(map.get("pdf"));
+        assertNotNull(map.get(null));
     }
 }

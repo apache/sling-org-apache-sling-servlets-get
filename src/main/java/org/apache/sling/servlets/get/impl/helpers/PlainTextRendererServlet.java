@@ -40,8 +40,6 @@ public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
 
     private static final long serialVersionUID = -5815904221043005085L;
 
-    public static final String EXT_TXT = "txt";
-
     @Override
     protected void doGet(SlingHttpServletRequest req,
             SlingHttpServletResponse resp) throws ServletException, IOException {

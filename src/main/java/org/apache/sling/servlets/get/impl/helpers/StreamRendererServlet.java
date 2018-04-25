@@ -51,6 +51,7 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.resource.external.ExternalizableInputStream;
 import org.apache.sling.api.servlets.HttpConstants;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.apache.sling.servlets.get.impl.DefaultGetServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +63,6 @@ import org.slf4j.LoggerFactory;
  * {@link PlainTextRendererServlet}.
  */
 public class StreamRendererServlet extends SlingSafeMethodsServlet {
-
-    public static final String EXT_RES = "res";
 
     private static final long serialVersionUID = -1L;
 
@@ -125,7 +124,7 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
 
         // ensure no extension or "res"
         String ext = request.getRequestPathInfo().getExtension();
-        if (ext != null && !ext.equals(EXT_RES)) {
+        if (ext != null && !ext.equals(DefaultGetServlet.EXT_RES)) {
             request.getRequestProgressTracker().log(
                 "StreamRendererServlet does not support for extension " + ext);
             if (included || response.isCommitted()) {
