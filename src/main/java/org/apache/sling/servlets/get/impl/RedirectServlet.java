@@ -32,12 +32,8 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
-import org.apache.sling.servlets.get.impl.helpers.JsonRendererServlet;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.metatype.annotations.AttributeDefinition;
-import org.osgi.service.metatype.annotations.Designate;
-import org.osgi.service.metatype.annotations.ObjectClassDefinition;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +53,9 @@ import org.slf4j.LoggerFactory;
  * status is sent where the target is the relative URL from the current resource
  * to the target resource. Selectors, extension, suffix and query string are
  * also appended to the redirect URL.
+ * <p>
+ * The exception to this process are GET requests that have a JSON extension.
+ * Those requests are handed off to the DefaultGetServlet for handling
  */
 @SuppressWarnings("serial")
 @Component(service = Servlet.class,
@@ -67,20 +66,7 @@ import org.slf4j.LoggerFactory;
             "sling.servlet.methods=GET",
             "sling.servlet.prefix:Integer=-1"
     })
-@Designate(ocd = RedirectServlet.Config.class)
 public class RedirectServlet extends SlingSafeMethodsServlet {
-
-    @ObjectClassDefinition(name="Apache Sling Redirect Servlet",
-            description="The Sling servlet handling redirect resources.")
-    public @interface Config {
-
-        @AttributeDefinition(name = "JSON Max results",
-                description = "The maximum number of resources that should " +
-                  "be returned when doing a node.5.json or node.infinity.json. In JSON terms " +
-                  "this basically means the number of Objects to return. Default value is " +
-                  "200.")
-        int json_maximumresults() default 200;
-    }
 
     /** The name of the target property */
     public static final String TARGET_PROP = "sling:target";
@@ -91,16 +77,8 @@ public class RedirectServlet extends SlingSafeMethodsServlet {
     /** default log */
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private Servlet jsonRendererServlet;
-
-    private int jsonMaximumResults;
-
-    @Activate
-    protected void activate(Config cfg) {
-      this.jsonMaximumResults = cfg.json_maximumresults();
-      // When the maximumResults get updated, we force a reset for the jsonRendererServlet.
-      jsonRendererServlet = getJsonRendererServlet();
-    }
+    @Reference(target="(component.name=org.apache.sling.servlets.get.DefaultGetServlet)")
+    private Servlet defaultRenderServlet;
 
     @Override
     protected void doGet(SlingHttpServletRequest request,
@@ -108,8 +86,8 @@ public class RedirectServlet extends SlingSafeMethodsServlet {
             IOException {
 
         // handle json export of the redirect node
-        if (JsonRendererServlet.EXT_JSON.equals(request.getRequestPathInfo().getExtension())) {
-            getJsonRendererServlet().service(request, response);
+        if (DefaultGetServlet.EXT_JSON.equals(request.getRequestPathInfo().getExtension())) {
+            defaultRenderServlet.service(request, response);
             return;
         }
 
@@ -306,19 +284,6 @@ public class RedirectServlet extends SlingSafeMethodsServlet {
         // 3. the actual target path
         absUriBuilder.append(targetPath);
         return absUriBuilder.toString();
-    }
-
-    private Servlet getJsonRendererServlet() {
-        if (jsonRendererServlet == null) {
-            Servlet jrs = new JsonRendererServlet(jsonMaximumResults);
-            try {
-                jrs.init(getServletConfig());
-            } catch (Exception e) {
-                // don't care too much here
-            }
-            jsonRendererServlet = jrs;
-        }
-        return jsonRendererServlet;
     }
 
     /**

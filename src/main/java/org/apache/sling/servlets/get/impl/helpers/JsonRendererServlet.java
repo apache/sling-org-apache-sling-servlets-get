@@ -46,8 +46,6 @@ public class JsonRendererServlet extends SlingSafeMethodsServlet {
 
     private static final long serialVersionUID = 5577121546674133317L;
 
-    public static final String EXT_JSON = "json";
-
     /** Recursion level selector that means "all levels" */
     public static final String INFINITY = "infinity";
 

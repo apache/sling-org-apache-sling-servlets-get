@@ -43,8 +43,6 @@ public class XMLRendererServlet extends SlingSafeMethodsServlet {
 
     private static final long serialVersionUID = -3520278283206430415L;
 
-    public static final String EXT_XML = "xml";
-
     private static final String SYSVIEW = "sysview";
     private static final String DOCVIEW = "docview";
 

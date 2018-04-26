@@ -40,7 +40,7 @@ public class HtmlRendererServlet extends SlingSafeMethodsServlet {
 
     private static final long serialVersionUID = -5815904221043005085L;
 
-    public static final String EXT_HTML = "html";
+
 
     private final XSSAPI xssApi;
 
