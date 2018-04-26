@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.SlingConstants;
@@ -29,29 +28,23 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.xss.XSSAPI;
 
 /**
  * The <code>HtmlRendererServlet</code> renders the current resource in HTML
  * on behalf of the {@link org.apache.sling.servlets.get.impl.DefaultGetServlet}.
  */
-public class HtmlRendererServlet extends SlingSafeMethodsServlet {
-
-    private static final long serialVersionUID = -5815904221043005085L;
-
-
+public class HtmlRenderer implements Renderer  {
 
     private final XSSAPI xssApi;
 
-    public HtmlRendererServlet(final XSSAPI xssApi) {
+    public HtmlRenderer(final XSSAPI xssApi) {
         this.xssApi = xssApi;
     }
 
-    @Override
-    protected void doGet(final SlingHttpServletRequest req,
-            final SlingHttpServletResponse resp)
-    throws ServletException, IOException {
+
+    public void render(final SlingHttpServletRequest req,
+            final SlingHttpServletResponse resp) throws IOException {
         final Resource r = req.getResource();
 
         if (ResourceUtil.isNonExistingResource(r)) {

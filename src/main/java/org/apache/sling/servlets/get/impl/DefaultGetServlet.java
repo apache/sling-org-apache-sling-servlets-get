@@ -32,11 +32,12 @@ import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.servlets.get.impl.helpers.HeadServletResponse;
-import org.apache.sling.servlets.get.impl.helpers.HtmlRendererServlet;
-import org.apache.sling.servlets.get.impl.helpers.JsonRendererServlet;
-import org.apache.sling.servlets.get.impl.helpers.PlainTextRendererServlet;
-import org.apache.sling.servlets.get.impl.helpers.StreamRendererServlet;
-import org.apache.sling.servlets.get.impl.helpers.XMLRendererServlet;
+import org.apache.sling.servlets.get.impl.helpers.HtmlRenderer;
+import org.apache.sling.servlets.get.impl.helpers.JsonRenderer;
+import org.apache.sling.servlets.get.impl.helpers.PlainTextRenderer;
+import org.apache.sling.servlets.get.impl.helpers.Renderer;
+import org.apache.sling.servlets.get.impl.helpers.StreamRenderer;
+import org.apache.sling.servlets.get.impl.helpers.XMLRenderer;
 import org.apache.sling.xss.XSSAPI;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -131,7 +132,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private Map<String, Servlet> rendererMap = new HashMap<>();
+    private Map<String, Renderer> rendererMap = new HashMap<>();
 
     private int jsonMaximumResults;
 
@@ -188,31 +189,18 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         this.indexFiles = null;
     }
 
-    private Servlet getDefaultRendererServlet(final String type) {
-        Servlet servlet = null;
+    private Renderer getDefaultRendererServlet(final String type) {
+    	Renderer servlet = null;
         if ( EXT_RES.equals(type) ) {
-            servlet = new StreamRendererServlet(index, indexFiles);
+            servlet = new StreamRenderer(index, indexFiles, getServletContext());
         } else if ( EXT_HTML.equals(type) ) {
-            servlet = new HtmlRendererServlet(xssApi);
+            servlet = new HtmlRenderer(xssApi);
         } else if ( EXT_TXT.equals(type) ) {
-            servlet = new PlainTextRendererServlet();
+            servlet = new PlainTextRenderer();
         } else if (EXT_JSON.equals(type) ) {
-            servlet = new JsonRendererServlet(jsonMaximumResults);
+            servlet = new JsonRenderer(jsonMaximumResults);
         } else if ( EXT_XML.equals(type) ) {
-            try {
-                servlet = new XMLRendererServlet();
-            } catch (Throwable t) {
-                logger.warn("Support for getting XML is currently disabled " +
-                        "in the servlets get module. Check whether the JCR API is available.");
-            }
-        }
-        if ( servlet != null ) {
-            try {
-                servlet.init(getServletConfig());
-            } catch (Throwable t) {
-                logger.error("Error while initializing servlet " + servlet, t);
-                servlet = null;
-            }
+            servlet = new XMLRenderer();
         }
         return servlet;
     }
@@ -223,7 +211,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
         // use the servlet for rendering StreamRendererServlet.EXT_RES as the
         // streamer servlet
-        Servlet streamerServlet = getDefaultRendererServlet(EXT_RES);
+        Renderer streamerServlet = getDefaultRendererServlet(EXT_RES);
 
         rendererMap.put(null, streamerServlet);
         
@@ -256,7 +244,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
                 final int pos = m.indexOf(':');
                 if (pos != -1) {
                     final String type = m.substring(0, pos);
-                    Servlet servlet = rendererMap.get(type);
+                    Renderer servlet = rendererMap.get(type);
                     if ( servlet == null ) {
                         servlet = getDefaultRendererServlet(type);
                     }
@@ -291,7 +279,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
                 request.getResource().getPath(), "No resource found");
         }
 
-        Servlet rendererServlet;
+        Renderer rendererServlet;
         String ext = request.getRequestPathInfo().getExtension();
         rendererServlet = rendererMap.get(ext);
 
@@ -316,7 +304,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         request.getRequestProgressTracker().log(
             "Using " + rendererServlet.getClass().getName()
                 + " to render for extension=" + ext);
-        rendererServlet.service(request, response);
+        rendererServlet.render(request, response);
     }
 
     @Override
@@ -330,17 +318,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
     @Override
     public void destroy() {
-
-        for (Servlet servlet : rendererMap.values()) {
-            try {
-                servlet.destroy();
-            } catch (Throwable t) {
-                logger.error("Error while destroying servlet " + servlet, t);
-            }
-        }
-
         rendererMap.clear();
-
         super.destroy();
     }
 }

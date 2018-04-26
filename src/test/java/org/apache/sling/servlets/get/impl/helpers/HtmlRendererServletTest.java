@@ -64,9 +64,9 @@ public class HtmlRendererServletTest {
     public void testEscaping() throws ServletException, IOException {
         XSSAPI xss = Mockito.mock(XSSAPI.class);
 
-        final HtmlRendererServlet servlet = new HtmlRendererServlet(xss);
+        final HtmlRenderer servlet = new HtmlRenderer(xss);
 
-        servlet.doGet(request, response);
+        servlet.render(request, response);
 
         Mockito.verify(xss).encodeForHTML("<script>alert(1);</script>");
     }

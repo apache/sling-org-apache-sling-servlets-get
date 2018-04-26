@@ -29,7 +29,6 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -39,17 +38,15 @@ import org.xml.sax.SAXException;
  *
  * At the moment only JCR nodes can be rendered as XML.
  */
-public class XMLRendererServlet extends SlingSafeMethodsServlet {
-
-    private static final long serialVersionUID = -3520278283206430415L;
+public class XMLRenderer implements Renderer {
 
     private static final String SYSVIEW = "sysview";
     private static final String DOCVIEW = "docview";
 
-    @Override
-    protected void doGet(SlingHttpServletRequest req,
+ 
+    public void render(SlingHttpServletRequest req,
                          SlingHttpServletResponse resp)
-    throws ServletException, IOException {
+    throws IOException {
         final Resource r = req.getResource();
 
         if (ResourceUtil.isNonExistingResource(r)) {

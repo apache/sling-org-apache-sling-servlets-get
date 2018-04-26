@@ -70,10 +70,8 @@ public abstract class JsonObjectCreator {
             // the node's actual properties
             while (props.hasNext()) {
                 final Map.Entry<String,Object> prop = props.next();
-
                 if ( prop.getValue() != null ) {
-                    createProperty(obj, valueMap, prop.getKey().toString(),
-                        prop.getValue());
+                    createProperty(obj, valueMap, prop.getKey(), prop.getValue());
                 }
             }
         }
@@ -95,8 +93,9 @@ public abstract class JsonObjectCreator {
     }
 
     /** Dump only a value in the correct format */
-    public static JsonValue getValue(final Object value) {
+    private static JsonValue getValue(final Object value) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
+
         if ( value instanceof InputStream ) {
             // input stream is already handled
             builder.add("entry", 0);
@@ -121,7 +120,7 @@ public abstract class JsonObjectCreator {
     /**
      * Write a single property
      */
-    public static void createProperty(final JsonObjectBuilder obj,
+    private static void createProperty(final JsonObjectBuilder obj,
                                  final ValueMap valueMap,
                                  final String key,
                                  final Object value) {

@@ -21,7 +21,6 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -29,20 +28,17 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 
 /**
  * The <code>PlainTextRendererServlet</code> renders the current resource in
  * plain text on behalf of the
  * {@link org.apache.sling.servlets.get.impl.DefaultGetServlet}.
  */
-public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
+public class PlainTextRenderer implements Renderer {
 
-    private static final long serialVersionUID = -5815904221043005085L;
 
-    @Override
-    protected void doGet(SlingHttpServletRequest req,
-            SlingHttpServletResponse resp) throws ServletException, IOException {
+    public void render(SlingHttpServletRequest req,
+            SlingHttpServletResponse resp) throws IOException {
         final Resource r = req.getResource();
         if (ResourceUtil.isNonExistingResource(r)) {
             throw new ResourceNotFoundException("No data to render.");

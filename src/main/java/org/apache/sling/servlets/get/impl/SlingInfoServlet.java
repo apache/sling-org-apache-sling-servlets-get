@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.sling.servlets.get.impl.impl.info;
+package org.apache.sling.servlets.get.impl;
 
 import java.io.IOException;
 import java.io.PrintWriter;

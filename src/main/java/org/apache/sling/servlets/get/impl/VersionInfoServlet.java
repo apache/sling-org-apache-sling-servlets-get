@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.sling.servlets.get.impl.version;
+package org.apache.sling.servlets.get.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.servlets.get.impl.util.JsonObjectCreator;
-import org.apache.sling.servlets.get.impl.util.JsonRenderer;
+import org.apache.sling.servlets.get.impl.util.JsonToText;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
@@ -92,7 +92,7 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
     /** How much to indent in tidy mode */
     public static final int INDENT_SPACES = 2;
     
-    private final JsonRenderer renderer = new JsonRenderer();
+    private final JsonToText renderer = new JsonToText();
 
     @Override
     public void doGet(SlingHttpServletRequest req, SlingHttpServletResponse resp) throws ServletException,
@@ -102,7 +102,7 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
         final boolean tidy = hasSelector(req, TIDY);
         final boolean harray = hasSelector(req, HARRAY);
 
-        final JsonRenderer.Options opt = renderer.options().withIndent(tidy ? INDENT_SPACES : 0)
+        final JsonToText.Options opt = renderer.options().withIndent(tidy ? INDENT_SPACES : 0)
                     .withArraysForChildren(harray);
         
         try {
