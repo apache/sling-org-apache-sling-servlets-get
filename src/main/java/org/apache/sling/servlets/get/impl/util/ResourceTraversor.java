@@ -148,7 +148,7 @@ public class ResourceTraversor
      * @throws JSONException
      */
     private JsonObjectBuilder adapt(final Resource resource) {
-        return JsonObjectCreator.create(resource, 0);
+        return JsonObjectCreator.create(resource);
     }
 
     /**

@@ -26,9 +26,11 @@ import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.version.Version;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionIterator;
+import javax.jcr.version.VersionManager;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -104,21 +106,23 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
                     .withArraysForChildren(harray);
         
         try {
-            resp.getWriter().write(renderer.prettyPrint(getJsonObject(req.getResource()), opt));
+        	VersionManager vm = req.getResourceResolver().adaptTo(Session.class).getWorkspace().getVersionManager();
+            resp.getWriter().write(renderer.prettyPrint(getJsonObject(req.getResource(), vm), opt));
         } catch (Exception e) {
             throw new ServletException(e);
         }
     }
 
-    private JsonObject getJsonObject(Resource resource) throws RepositoryException {
+    private JsonObject getJsonObject(Resource resource, VersionManager vm) throws RepositoryException {
         final JsonObjectBuilder result = Json.createObjectBuilder();
         final Node node = resource.adaptTo(Node.class);
         if (node == null || !node.isNodeType(JcrConstants.MIX_VERSIONABLE)) {
             return result.build();
         }
-
-        final VersionHistory history = node.getVersionHistory();
-        final Version baseVersion = node.getBaseVersion();
+        final String absPath = resource.getPath();
+        final VersionHistory history = vm.getVersionHistory(absPath);
+        final Version baseVersion = vm.getBaseVersion(absPath);
+        
         for (final VersionIterator it = history.getAllVersions(); it.hasNext();) {
             final Version v = it.nextVersion();
             final JsonObjectBuilder obj = Json.createObjectBuilder();

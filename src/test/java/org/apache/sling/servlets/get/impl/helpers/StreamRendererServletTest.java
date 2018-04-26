@@ -135,7 +135,8 @@ public class StreamRendererServletTest {
         final ResourceMetadata meta = Mockito.mock(ResourceMetadata.class);
         final ServletContext sc = Mockito.mock(ServletContext.class);
         
-        StreamRendererServlet streamRendererServlet = new StreamRendererServlet(true,new String []{"/"}) {
+        @SuppressWarnings("serial")
+		StreamRendererServlet streamRendererServlet = new StreamRendererServlet(true,new String []{"/"}) {
             @Override
             public ServletContext getServletContext() {
                 return sc;

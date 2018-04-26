@@ -58,7 +58,7 @@ public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
 
         final PrintWriter pw = resp.getWriter();
         @SuppressWarnings("unchecked")
-        final Map map = r.adaptTo(Map.class);
+        final Map<String,Object> map = r.adaptTo(Map.class);
         if ( map != null ) {
             dump(pw, r, map);
         } else if ( r.adaptTo(String.class) != null ) {
@@ -84,8 +84,7 @@ public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
      * @param r the resource
      * @param map the resource's properties
      */
-    @SuppressWarnings("unchecked")
-    protected void dump(PrintWriter pw, Resource r, Map map) {
+    protected void dump(PrintWriter pw, Resource r, Map<String, Object> map) {
         pw.println("** Resource dumped by " + getClass().getSimpleName() + "**");
         pw.println("Resource path:" + r.getPath());
         pw.println("Resource metadata: " + r.getResourceMetadata());
@@ -98,10 +97,10 @@ public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
         pw.println("Resource super type: " + resourceSuperType);
 
         pw.println("\n** Resource properties **");
-        final Iterator<Map.Entry> pi = map.entrySet().iterator();
+        final Iterator<Map.Entry<String,Object>> pi = map.entrySet().iterator();
         while ( pi.hasNext() ) {
-            final Map.Entry p = pi.next();
-            printPropertyValue(pw, p.getKey().toString(), p.getValue(), true);
+            final Map.Entry<String,Object> p = pi.next();
+            printPropertyValue(pw, p.getKey(), p.getValue(), true);
             pw.println();
         }
     }

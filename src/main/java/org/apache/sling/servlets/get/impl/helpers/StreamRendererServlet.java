@@ -454,7 +454,7 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
         }
 
         // render the children
-        Iterator<Resource> children = ResourceUtil.listChildren(resource);
+        Iterator<Resource> children = resource.listChildren();
         while (children.hasNext()) {
             renderChild(pw, children.next());
         }
