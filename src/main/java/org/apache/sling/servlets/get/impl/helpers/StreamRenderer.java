@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -50,7 +51,6 @@ import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.resource.external.ExternalizableInputStream;
 import org.apache.sling.api.servlets.HttpConstants;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.servlets.get.impl.DefaultGetServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,11 +60,9 @@ import org.slf4j.LoggerFactory;
  * client on behalf of the
  * {@link org.apache.sling.servlets.get.impl.DefaultGetServlet}. If the current
  * resource cannot be streamed it is rendered using the
- * {@link PlainTextRendererServlet}.
+ * {@link PlainTextRenderer}.
  */
-public class StreamRendererServlet extends SlingSafeMethodsServlet {
-
-    private static final long serialVersionUID = -1L;
+public class StreamRenderer implements Renderer {
 
     /**
      * MIME multipart separation string
@@ -94,31 +92,17 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
 
     private String[] indexFiles;
 
-    public StreamRendererServlet(boolean index, String[] indexFiles) {
+	private ServletContext context;
+
+    public StreamRenderer(boolean index, String[] indexFiles,ServletContext context) {
         this.index = index;
         this.indexFiles = indexFiles;
+        this.context = context;
     }
 
-    @Override
-    protected void doGet(SlingHttpServletRequest request,
-            SlingHttpServletResponse response) throws ServletException,
-            IOException {
-
-        processRequest(request, response);
-
-    }
-
-    @Override
-    protected void doHead(SlingHttpServletRequest request,
-                         SlingHttpServletResponse response) throws ServletException,
-            IOException {
-        processRequest(request, response);
-    }
-
-    private void processRequest(SlingHttpServletRequest request,
-                                   SlingHttpServletResponse response) throws ServletException,
-            IOException {
-
+    public void render(SlingHttpServletRequest request,
+            SlingHttpServletResponse response) throws IOException {
+    	
         // whether this servlet is called as of a request include
         final boolean included = request.getAttribute(SlingConstants.ATTR_REQUEST_SERVLET) != null;
 
@@ -245,12 +229,10 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
 
             final ArrayList<Range> ranges;
             if (included) {
-
                 // no range support on included requests
                 ranges = FULL;
 
             } else {
-
                 // parse optional ranges
                 ranges = parseRange(request, response,
                     resource.getResourceMetadata());
@@ -267,7 +249,6 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
             ServletOutputStream out = response.getOutputStream();
 
             if (ranges == FULL) {
-
                 // return full resource
                 setContentLength(response,
                     resource.getResourceMetadata().getContentLength());
@@ -276,21 +257,16 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
                 while ((rd = stream.read(buf)) >= 0) {
                     out.write(buf, 0, rd);
                 }
-
             } else {
-
                 // return ranges of the resource
                 response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
 
                 if (ranges.size() == 1) {
-
                     Range range = ranges.get(0);
                     response.addHeader("Content-Range", "bytes " + range.start
                         + "-" + range.end + "/" + range.length);
                     setContentLength(response, range.end - range.start + 1);
-
                     copy(stream, out, range);
-
                 } else {
 
                     response.setContentType("multipart/byteranges; boundary="
@@ -308,7 +284,7 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
 
     private void renderDirectory(final SlingHttpServletRequest request,
             final SlingHttpServletResponse response, final boolean included)
-            throws ServletException, IOException {
+            throws IOException {
 
         // request is included or committed, not rendering index
         if (included || response.isCommitted()) {
@@ -345,7 +321,11 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
                     dispatcher = request.getRequestDispatcher(fileRes, rdo);
                 }
 
-                dispatcher.include(request, response);
+                try {
+					dispatcher.include(request, response);
+				} catch (ServletException e) {
+					throw new IOException(e);
+				}
                 return;
             }
         }
@@ -382,7 +362,7 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
             // provides the
             // default one,
             // try to do better using our servlet context
-            final String ct = getServletContext().getMimeType(
+            final String ct = context.getMimeType(
                 resource.getPath());
             if (ct != null) {
                 contentType = ct;
@@ -454,7 +434,7 @@ public class StreamRendererServlet extends SlingSafeMethodsServlet {
         }
 
         // render the children
-        Iterator<Resource> children = ResourceUtil.listChildren(resource);
+        Iterator<Resource> children = resource.listChildren();
         while (children.hasNext()) {
             renderChild(pw, children.next());
         }

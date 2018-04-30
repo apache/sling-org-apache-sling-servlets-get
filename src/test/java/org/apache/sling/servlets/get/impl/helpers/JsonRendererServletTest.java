@@ -40,7 +40,7 @@ public class JsonRendererServletTest {
     private SlingHttpServletRequest request;
     private SlingHttpServletResponse response;
     private String [] selectors;
-    private JsonRendererServlet jrs;
+    private JsonRenderer jrs;
     
     @Before
     public void setup() {
@@ -59,7 +59,7 @@ public class JsonRendererServletTest {
         
         response = Mockito.mock(SlingHttpServletResponse.class);
         
-        jrs = new JsonRendererServlet(42);
+        jrs = new JsonRenderer(42);
     }
     
     @Test
@@ -106,7 +106,7 @@ public class JsonRendererServletTest {
     @Test
     public void testBadRequest() throws IOException {
         selectors = new String[] { "bad", "selectors" };
-        jrs.doGet(request, response);
+        jrs.render(request, response);
         Mockito.verify(response, Mockito.times(1)).sendError(Matchers.anyInt(), Matchers.anyString());
     }
 }

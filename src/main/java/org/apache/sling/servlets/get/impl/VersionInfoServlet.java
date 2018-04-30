@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.sling.servlets.get.impl.version;
+package org.apache.sling.servlets.get.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,9 +26,11 @@ import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.version.Version;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionIterator;
+import javax.jcr.version.VersionManager;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -42,7 +44,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.servlets.get.impl.util.JsonObjectCreator;
-import org.apache.sling.servlets.get.impl.util.JsonRenderer;
+import org.apache.sling.servlets.get.impl.util.JsonToText;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
@@ -90,7 +92,7 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
     /** How much to indent in tidy mode */
     public static final int INDENT_SPACES = 2;
     
-    private final JsonRenderer renderer = new JsonRenderer();
+    private final JsonToText renderer = new JsonToText();
 
     @Override
     public void doGet(SlingHttpServletRequest req, SlingHttpServletResponse resp) throws ServletException,
@@ -100,25 +102,27 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
         final boolean tidy = hasSelector(req, TIDY);
         final boolean harray = hasSelector(req, HARRAY);
 
-        final JsonRenderer.Options opt = renderer.options().withIndent(tidy ? INDENT_SPACES : 0)
+        final JsonToText.Options opt = renderer.options().withIndent(tidy ? INDENT_SPACES : 0)
                     .withArraysForChildren(harray);
         
         try {
-            resp.getWriter().write(renderer.prettyPrint(getJsonObject(req.getResource()), opt));
+        	VersionManager vm = req.getResourceResolver().adaptTo(Session.class).getWorkspace().getVersionManager();
+            resp.getWriter().write(renderer.prettyPrint(getJsonObject(req.getResource(), vm), opt));
         } catch (Exception e) {
             throw new ServletException(e);
         }
     }
 
-    private JsonObject getJsonObject(Resource resource) throws RepositoryException {
+    private JsonObject getJsonObject(Resource resource, VersionManager vm) throws RepositoryException {
         final JsonObjectBuilder result = Json.createObjectBuilder();
         final Node node = resource.adaptTo(Node.class);
         if (node == null || !node.isNodeType(JcrConstants.MIX_VERSIONABLE)) {
             return result.build();
         }
-
-        final VersionHistory history = node.getVersionHistory();
-        final Version baseVersion = node.getBaseVersion();
+        final String absPath = resource.getPath();
+        final VersionHistory history = vm.getVersionHistory(absPath);
+        final Version baseVersion = vm.getBaseVersion(absPath);
+        
         for (final VersionIterator it = history.getAllVersions(); it.hasNext();) {
             final Version v = it.nextVersion();
             final JsonObjectBuilder obj = Json.createObjectBuilder();

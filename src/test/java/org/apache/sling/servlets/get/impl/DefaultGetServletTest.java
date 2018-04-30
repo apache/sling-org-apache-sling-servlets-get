@@ -25,6 +25,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 import javax.servlet.Servlet;
+import javax.servlet.ServletContext;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -32,7 +33,12 @@ import org.mockito.Mockito;
 public class DefaultGetServletTest {
 
     @Test public void testDisabledAlias() throws Exception {
-        final DefaultGetServlet servlet = new DefaultGetServlet();
+        @SuppressWarnings("serial")
+		final DefaultGetServlet servlet = new DefaultGetServlet() {
+        	public ServletContext getServletContext() {
+        		return null;
+        	}
+        };
         final DefaultGetServlet.Config config = Mockito.mock(DefaultGetServlet.Config.class);
         Mockito.when(config.enable_html()).thenReturn(true);
         Mockito.when(config.enable_json()).thenReturn(true);

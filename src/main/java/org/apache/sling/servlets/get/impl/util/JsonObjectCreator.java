@@ -38,37 +38,18 @@ import org.apache.sling.api.resource.ValueMap;
 
 public abstract class JsonObjectCreator {
 
-    /**
-     * Dump given resource in JSON, optionally recursing into its objects
-     */
-    public static JsonObjectBuilder create(final Resource resource, final int maxRecursionLevels) {
-        return create(resource, 0, maxRecursionLevels);
-    }
-
-
-    /** Dump given resource in JSON, optionally recursing into its objects */
-    private static JsonObjectBuilder create(final Resource resource,
-            final int currentRecursionLevel,
-            final int maxRecursionLevels) {
-        final ValueMap valueMap = resource.adaptTo(ValueMap.class);
-
-        final Map propertyMap = (valueMap != null)
-                ? valueMap
-                : resource.adaptTo(Map.class);
+    public static JsonObjectBuilder create(final Resource resource) {
+        final ValueMap valueMap = resource.getValueMap();
 
         final JsonObjectBuilder obj = Json.createObjectBuilder();
 
-        if (propertyMap == null) {
+        if (valueMap.isEmpty()) {
 
             // no map available, try string
             final String value = resource.adaptTo(String.class);
             if (value != null) {
-
-                // single value property or just plain String resource or...
                 obj.add(resource.getName(), value.toString());
-
             } else {
-
                 // Try multi-value "property"
                 final String[] values = resource.adaptTo(String[].class);
                 if (values != null) {
@@ -84,27 +65,14 @@ public abstract class JsonObjectCreator {
 
         } else {
 
-            @SuppressWarnings("unchecked")
-            final Iterator<Map.Entry> props = propertyMap.entrySet().iterator();
+            final Iterator<Map.Entry<String,Object>> props = valueMap.entrySet().iterator();
 
             // the node's actual properties
             while (props.hasNext()) {
-                final Map.Entry prop = props.next();
-
+                final Map.Entry<String,Object> prop = props.next();
                 if ( prop.getValue() != null ) {
-                    createProperty(obj, valueMap, prop.getKey().toString(),
-                        prop.getValue());
+                    createProperty(obj, valueMap, prop.getKey(), prop.getValue());
                 }
-            }
-        }
-
-        // the child nodes
-        if (recursionLevelActive(currentRecursionLevel, maxRecursionLevels)) {
-            final Iterator<Resource> children = resource.listChildren();
-            while (children.hasNext()) {
-                final Resource n = children.next();
-                createSingleResource(n, obj, currentRecursionLevel,
-                    maxRecursionLevels);
             }
         }
 
@@ -125,8 +93,9 @@ public abstract class JsonObjectCreator {
     }
 
     /** Dump only a value in the correct format */
-    public static JsonValue getValue(final Object value) {
+    private static JsonValue getValue(final Object value) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
+
         if ( value instanceof InputStream ) {
             // input stream is already handled
             builder.add("entry", 0);
@@ -148,25 +117,10 @@ public abstract class JsonObjectCreator {
         return builder.build().get("entry");
     }
 
-    /** Dump a single node */
-    private static void createSingleResource(final Resource n, final JsonObjectBuilder parent,
-            final int currentRecursionLevel, final int maxRecursionLevels) {
-        if (recursionLevelActive(currentRecursionLevel, maxRecursionLevels)) {
-            parent.add(n.getName(), create(n, currentRecursionLevel + 1, maxRecursionLevels));
-        }
-    }
-
-    /** true if the current recursion level is active */
-    private static boolean recursionLevelActive(final int currentRecursionLevel,
-            final int maxRecursionLevels) {
-        return maxRecursionLevels < 0
-            || currentRecursionLevel < maxRecursionLevels;
-    }
-
     /**
      * Write a single property
      */
-    public static void createProperty(final JsonObjectBuilder obj,
+    private static void createProperty(final JsonObjectBuilder obj,
                                  final ValueMap valueMap,
                                  final String key,
                                  final Object value) {

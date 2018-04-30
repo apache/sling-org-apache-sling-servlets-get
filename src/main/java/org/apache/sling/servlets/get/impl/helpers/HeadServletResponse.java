@@ -17,7 +17,6 @@
 
 package org.apache.sling.servlets.get.impl.helpers;
 
-
 import java.io.PrintWriter;
 import java.io.Writer;
 
@@ -29,110 +28,108 @@ import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
 
 /**
  * The <code>HeadServletResponse</code> is a Sling response wrapper which
- * ensures that nothing will ever be written by return null writers or
- * output streams.
+ * ensures that nothing will ever be written by return null writers or output
+ * streams.
  */
 
-public class HeadServletResponse extends
-        SlingHttpServletResponseWrapper {
+public class HeadServletResponse extends SlingHttpServletResponseWrapper {
 
-    private ServletOutputStream stream;
+	private ServletOutputStream stream;
 
-    private PrintWriter writer;
+	private PrintWriter writer;
 
-    public HeadServletResponse(SlingHttpServletResponse wrappedResponse) {
-        super(wrappedResponse);
-    }
+	public HeadServletResponse(SlingHttpServletResponse wrappedResponse) {
+		super(wrappedResponse);
+	}
 
-    @Override
-    public ServletOutputStream getOutputStream() {
-        if (writer != null) {
-            throw new IllegalStateException("Writer already obtained");
-        }
+	@Override
+	public ServletOutputStream getOutputStream() {
+		if (writer != null) {
+			throw new IllegalStateException("Writer already obtained");
+		}
 
-        if (stream == null) {
-            stream = new NullServletOutputStream();
-        }
+		if (stream == null) {
+			stream = new NullServletOutputStream();
+		}
 
-        return stream;
-    }
+		return stream;
+	}
 
-    @Override
-    public PrintWriter getWriter() {
-        if (stream != null) {
-            throw new IllegalStateException("OutputStream already obtained");
-        }
+	@Override
+	public PrintWriter getWriter() {
+		if (stream != null) {
+			throw new IllegalStateException("OutputStream already obtained");
+		}
 
-        if (writer == null) {
-            writer = new PrintWriter(new NullWriter());
-        }
+		if (writer == null) {
+			writer = new PrintWriter(new NullWriter());
+		}
 
-        return writer;
-    }
+		return writer;
+	}
 
-    /**
-     * The <code>NullServletOutputStream</code> is a
-     * <code>ServletOutputStream</code> which simply does not write out
-     * anything.
-     *
-     * @see HeadServletResponse#getOutputStream()
-     */
-    private static class NullServletOutputStream extends ServletOutputStream {
-        @Override
-        public void write(int b) {
-        }
+	/**
+	 * The <code>NullServletOutputStream</code> is a
+	 * <code>ServletOutputStream</code> which simply does not write out anything.
+	 *
+	 * @see HeadServletResponse#getOutputStream()
+	 */
+	private static class NullServletOutputStream extends ServletOutputStream {
+		@Override
+		public void write(int b) {
+		}
 
-        @Override
-        public void write(byte[] b) {
-        }
+		@Override
+		public void write(byte[] b) {
+		}
 
-        @Override
-        public void write(byte[] b, int off, int len) {
-        }
+		@Override
+		public void write(byte[] b, int off, int len) {
+		}
 
-        @Override
-        public boolean isReady() {
-            return true;
-        }
+		@Override
+		public boolean isReady() {
+			return true;
+		}
 
-        @Override
-        public void setWriteListener(WriteListener writeListener) {
-        }
-    }
+		@Override
+		public void setWriteListener(WriteListener writeListener) {
+		}
+	}
 
-    /**
-     * The <code>NullWriter</code> is a <code>Writer</code> which simply does
-     * not write out anything.
-     *
-     * @see HeadServletResponse#getWriter()
-     */
-    private static class NullWriter extends Writer {
-        @Override
-        public void write(char[] cbuf, int off, int len) {
-        }
+	/**
+	 * The <code>NullWriter</code> is a <code>Writer</code> which simply does not
+	 * write out anything.
+	 *
+	 * @see HeadServletResponse#getWriter()
+	 */
+	private static class NullWriter extends Writer {
+		@Override
+		public void write(char[] cbuf, int off, int len) {
+		}
 
-        @Override
-        public void write(char[] cbuf) {
-        }
+		@Override
+		public void write(char[] cbuf) {
+		}
 
-        @Override
-        public void write(int c) {
-        }
+		@Override
+		public void write(int c) {
+		}
 
-        @Override
-        public void write(String str) {
-        }
+		@Override
+		public void write(String str) {
+		}
 
-        @Override
-        public void write(String str, int off, int len) {
-        }
+		@Override
+		public void write(String str, int off, int len) {
+		}
 
-        @Override
-        public void flush() {
-        }
+		@Override
+		public void flush() {
+		}
 
-        @Override
-        public void close() {
-        }
-    }
+		@Override
+		public void close() {
+		}
+	}
 }

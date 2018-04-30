@@ -18,9 +18,6 @@
  */
 package org.apache.sling.servlets.get.impl.util;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -29,10 +26,9 @@ import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonString;
 import javax.json.JsonValue;
 
-public class JsonRenderer
+public class JsonToText
 {
     /** Rendering options */
     static public class Options {
@@ -101,38 +97,8 @@ public class JsonRenderer
         }
     }
 
-    /** Render the supplied JSONObject to a String, in
-     *  the simplest possible way.
-     */
-    public String toString(JsonObject jo) {
-        try {
-            StringWriter writer = new StringWriter();
-            Json.createGenerator(writer).write(jo).close();
-            return writer.toString();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    /** Make a JSON text of the supplied JSONArray. For compactness, no
-     *  unnecessary whitespace is added. If it is not possible to produce a
-     *  syntactically correct JSON text then null will be returned instead. This
-     *  could occur if the array contains an invalid number.
-     *  <p>Warning: This method assumes that the data structure is acyclical.
-     *
-     *  @return a printable, displayable, transmittable
-     *  representation of the array.
-     */
-    public String toString(JsonArray ja) {
-        try {
-            return '[' + join(ja,",") + ']';
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     /** Quote the supplied string for JSON */
-    public String quote(String string) {
+    private String quote(String string) {
         if (string == null || string.length() == 0) {
             return "\"\"";
         }
@@ -189,101 +155,15 @@ public class JsonRenderer
         return sb.toString();
     }
 
-    /** Quote the supplied string for JSON, to the supplied Writer */
-    public void quote(Writer w, String string) throws IOException {
-        w.write(quote(string));
-    }
 
-    /**
-     * Make a JSON text of an Object value. 
-     * <p>
-     * Warning: This method assumes that the data structure is acyclical.
-     * @param value The value to be serialized.
-     * @return a printable, displayable, transmittable
-     *  representation of the object, beginning
-     *  with <code>{</code>&nbsp;<small>(left brace)</small> and ending
-     *  with <code>}</code>&nbsp;<small>(right brace)</small>.
-     * @throws JSONException If the value is or contains an invalid number.
-     */
-    public String valueToString(Object value) {
-        // TODO call the other valueToString instead
-        if (value == null || value.equals(null)) {
-            return "null";
-        }
-        if (value instanceof JsonString) {
-            quote(((JsonString)value).getString());
-        }
-        if (value instanceof Number) {
-            return numberToString((Number) value);
-        }
-        if (value instanceof Boolean) {
-            return value.toString();
-        }
-        if (value instanceof JsonObject || value instanceof JsonArray) {
-            StringWriter writer = new StringWriter();
-            Json.createGenerator(writer).write((JsonValue) value).close();
-            return writer.toString();
-        }
-        return quote(value.toString());
-    }
 
     /** Make a JSON String of an Object value, with rendering options
-     * <p>
-     * Warning: This method assumes that the data structure is acyclical.
-     * @param value The value to be serialized.
-     * @return a printable, displayable, transmittable
-     *  representation of the object, beginning
-     *  with <code>{</code>&nbsp;<small>(left brace)</small> and ending
-     *  with <code>}</code>&nbsp;<small>(right brace)</small>.
-     * @throws JSONException If the object contains an invalid number.
      */
-    public String valueToString(Object value, Options opt) {
-        if (value == null || value.equals(null)) {
-            return "null";
-        }
-        if (value instanceof JsonString) {
-            return quote(((JsonString)value).getString());
-        }
-        if (value instanceof Number) {
-            return numberToString((Number) value);
-        }
-        if (value instanceof Boolean) {
-            return value.toString();
-        }
-        if (value instanceof JsonObject) {
-            return prettyPrint((JsonObject)value, opt);
-        }
-        if (value instanceof JsonArray) {
+    private String valueToString(JsonValue value, Options opt) {
+        if (value instanceof JsonObject || value instanceof JsonArray) {
             return prettyPrint((JsonArray)value, opt);
         }
-        return quote(value.toString());
-
-    }
-
-    /**
-     * Produce a string from a Number.
-     * @param  n A Number
-     * @return A String.
-     * @throws JSONException If n is a non-finite number.
-     */
-    public String numberToString(Number n) {
-        if (n == null) {
-            throw new NullPointerException("Null pointer");
-        }
-        testNumberValidity(n);
-
-        // Shave off trailing zeros and decimal point, if possible.
-
-        String s = n.toString();
-        if (s.indexOf('.') > 0 && s.indexOf('e') < 0 && s.indexOf('E') < 0) {
-            while (s.endsWith("0")) {
-                s = s.substring(0, s.length() - 1);
-            }
-            if (s.endsWith(".")) {
-                s = s.substring(0, s.length() - 1);
-            }
-        }
-        return s;
+        return value.toString();
     }
 
     /** Decide whether o must be skipped and added to a, when rendering a JSONObject */
@@ -322,7 +202,7 @@ public class JsonRenderer
         String o;
         if (n == 1) {
             o = keys.next();
-            final Object v = jo.get(o);
+            final JsonValue v = jo.get(o);
             if(!skipChildObject(children, opt, o, v)) {
                 sb.append(quote(o));
                 sb.append(": ");
@@ -331,7 +211,7 @@ public class JsonRenderer
         } else {
             while (keys.hasNext()) {
                 o = keys.next();
-                final Object v = jo.get(o);
+                final JsonValue v = jo.get(o);
                 if(skipChildObject(children, opt, o, v)) {
                     continue;
                 }
@@ -405,99 +285,4 @@ public class JsonRenderer
         return sb.toString();
     }
 
-    /**
-     * Throw an exception if the object is an NaN or infinite number.
-     * @param o The object to test.
-     * @throws IllegalArgumentException If o is a non-finite number.
-     */
-    public void testNumberValidity(Object o) {
-        if (o != null) {
-            if (o instanceof Double) {
-                if (((Double)o).isInfinite() || ((Double)o).isNaN()) {
-                    throw new IllegalArgumentException(
-                        "JSON does not allow non-finite numbers");
-                }
-            } else if (o instanceof Float) {
-                if (((Float)o).isInfinite() || ((Float)o).isNaN()) {
-                    throw new IllegalArgumentException(
-                        "JSON does not allow non-finite numbers.");
-                }
-            }
-        }
-    }
-
-    /**
-     * Make a string from the contents of this JSONArray. The
-     * <code>separator</code> string is inserted between each element.
-     * Warning: This method assumes that the data structure is acyclical.
-     * @param separator A string that will be inserted between the elements.
-     * @return a string.
-     * @throws JSONException If the array contains an invalid number.
-     */
-    public String join(JsonArray ja, String separator) {
-        final int len = ja.size();
-        StringBuffer sb = new StringBuffer();
-
-        for (int i = 0; i < len; i += 1) {
-            if (i > 0) {
-                sb.append(separator);
-            }
-            sb.append(valueToString(ja.get(i)));
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Write the contents of the supplied JSONObject as JSON text to a writer.
-     * For compactness, no whitespace is added.
-     * <p>
-     * Warning: This method assumes that the data structure is acyclical.
-     *
-     * @return The writer.
-     * @throws IOException
-     */
-    public Writer write(Writer writer, JsonObject jo) throws IOException{
-       Json.createGenerator(writer).write(jo).flush();
-        
-       return writer;
-    }
-
-    /**
-     * Write the contents of the supplied JSONArray as JSON text to a writer.
-     * For compactness, no whitespace is added.
-     * <p>
-     * Warning: This method assumes that the data structure is acyclical.
-     *
-     * @return The writer.
-     * @throws IOException
-     */
-    public Writer write(Writer writer, JsonArray ja) throws IOException {
-        Json.createGenerator(writer).write(ja).flush();
-        return writer;
-    }
-
-    /**
-     * Produce a string from a double. The string "null" will be returned if
-     * the number is not finite.
-     * @param  d A double.
-     * @return A String.
-     */
-    public String doubleToString(double d) {
-        if (Double.isInfinite(d) || Double.isNaN(d)) {
-            return "null";
-        }
-
-        // Shave off trailing zeros and decimal point, if possible.
-
-        String s = Double.toString(d);
-        if (s.indexOf('.') > 0 && s.indexOf('e') < 0 && s.indexOf('E') < 0) {
-            while (s.endsWith("0")) {
-                s = s.substring(0, s.length() - 1);
-            }
-            if (s.endsWith(".")) {
-                s = s.substring(0, s.length() - 1);
-            }
-        }
-        return s;
-    }
 }

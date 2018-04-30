@@ -30,8 +30,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
-import org.apache.sling.servlets.get.impl.util.JsonRenderer;
+import org.apache.sling.servlets.get.impl.util.JsonToText;
 import org.apache.sling.servlets.get.impl.util.ResourceTraversor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,11 +39,9 @@ import org.slf4j.LoggerFactory;
  * The <code>JsonRendererServlet</code> renders the current resource in JSON
  * on behalf of the {@link org.apache.sling.servlets.get.impl.DefaultGetServlet}.
  */
-public class JsonRendererServlet extends SlingSafeMethodsServlet {
+public class JsonRenderer implements Renderer {
 
-    private final Logger log = LoggerFactory.getLogger(JsonRendererServlet.class);
-
-    private static final long serialVersionUID = 5577121546674133317L;
+    private final Logger log = LoggerFactory.getLogger(JsonRenderer.class);
 
     /** Recursion level selector that means "all levels" */
     public static final String INFINITY = "infinity";
@@ -62,14 +59,13 @@ public class JsonRendererServlet extends SlingSafeMethodsServlet {
 
     private long maximumResults;
 
-    private final JsonRenderer renderer = new JsonRenderer();
+    private final JsonToText renderer = new JsonToText();
 
-    public JsonRendererServlet(long maximumResults) {
+    public JsonRenderer(long maximumResults) {
         this.maximumResults = maximumResults;
     }
 
-    @Override
-    protected void doGet(SlingHttpServletRequest req,
+    public void render(SlingHttpServletRequest req,
             SlingHttpServletResponse resp) throws IOException {
         // Access and check our data
         final Resource r = req.getResource();
@@ -107,7 +103,7 @@ public class JsonRendererServlet extends SlingSafeMethodsServlet {
             // Dump the resource if we can
             if (allowDump) {
                 if (tidy || harray) {
-                    final JsonRenderer.Options opt = renderer.options()
+                    final JsonToText.Options opt = renderer.options()
                             .withIndent(tidy ? INDENT_SPACES : 0)
                             .withArraysForChildren(harray);
                     resp.getWriter().write(renderer.prettyPrint(traversor.getJSONObject(), opt));

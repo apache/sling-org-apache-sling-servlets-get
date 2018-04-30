@@ -46,7 +46,7 @@ public class StreamRendererServletTest {
     public void testResultingLength() throws IOException {
         final ByteArrayInputStream in = new ByteArrayInputStream("12345678".getBytes());
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        StreamRendererServlet.staticCopyRange(in, out, 2, 4);
+        StreamRenderer.staticCopyRange(in, out, 2, 4);
         final String result = out.toString();
         assertEquals(2, result.length());
         assertEquals("34", result);
@@ -54,11 +54,11 @@ public class StreamRendererServletTest {
     
     private void runTests(int randomSeed) throws IOException {
         final Random random = new Random(randomSeed);
-        assertCopyRange(random, StreamRendererServlet.IO_BUFFER_SIZE * 2 + 42);
-        assertCopyRange(random, StreamRendererServlet.IO_BUFFER_SIZE * 3);
-        assertCopyRange(random, StreamRendererServlet.IO_BUFFER_SIZE);
-        assertCopyRange(random, StreamRendererServlet.IO_BUFFER_SIZE - 1);
-        assertCopyRange(random, random.nextInt(StreamRendererServlet.IO_BUFFER_SIZE));
+        assertCopyRange(random, StreamRenderer.IO_BUFFER_SIZE * 2 + 42);
+        assertCopyRange(random, StreamRenderer.IO_BUFFER_SIZE * 3);
+        assertCopyRange(random, StreamRenderer.IO_BUFFER_SIZE);
+        assertCopyRange(random, StreamRenderer.IO_BUFFER_SIZE - 1);
+        assertCopyRange(random, random.nextInt(StreamRenderer.IO_BUFFER_SIZE));
         assertCopyRange(random, 42);
         assertCopyRange(random, 1);
     }
@@ -118,7 +118,7 @@ public class StreamRendererServletTest {
             byte[] expected, InputStream input, int a, int b) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        StreamRendererServlet.staticCopyRange(input, output, a, b);
+        StreamRenderer.staticCopyRange(input, output, a, b);
 
         byte[] actual = output.toByteArray();
         assertEquals(b - a, actual.length);
@@ -135,12 +135,8 @@ public class StreamRendererServletTest {
         final ResourceMetadata meta = Mockito.mock(ResourceMetadata.class);
         final ServletContext sc = Mockito.mock(ServletContext.class);
         
-        StreamRendererServlet streamRendererServlet = new StreamRendererServlet(true,new String []{"/"}) {
-            @Override
-            public ServletContext getServletContext() {
-                return sc;
-            }
-        };        
+        @SuppressWarnings("serial")
+		StreamRenderer streamRendererServlet = new StreamRenderer(true,new String []{"/"},sc);       
 
         Mockito.when(resource.getResourceMetadata()).thenReturn(meta);
         PrivateAccessor.invoke(streamRendererServlet, "setHeaders", new Class[]{Resource.class, SlingHttpServletResponse.class}, new Object[]{resource, response});

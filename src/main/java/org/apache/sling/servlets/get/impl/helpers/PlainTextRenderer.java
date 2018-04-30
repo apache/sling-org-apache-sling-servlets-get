@@ -21,7 +21,6 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -29,20 +28,17 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 
 /**
  * The <code>PlainTextRendererServlet</code> renders the current resource in
  * plain text on behalf of the
  * {@link org.apache.sling.servlets.get.impl.DefaultGetServlet}.
  */
-public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
+public class PlainTextRenderer implements Renderer {
 
-    private static final long serialVersionUID = -5815904221043005085L;
 
-    @Override
-    protected void doGet(SlingHttpServletRequest req,
-            SlingHttpServletResponse resp) throws ServletException, IOException {
+    public void render(SlingHttpServletRequest req,
+            SlingHttpServletResponse resp) throws IOException {
         final Resource r = req.getResource();
         if (ResourceUtil.isNonExistingResource(r)) {
             throw new ResourceNotFoundException("No data to render.");
@@ -58,7 +54,7 @@ public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
 
         final PrintWriter pw = resp.getWriter();
         @SuppressWarnings("unchecked")
-        final Map map = r.adaptTo(Map.class);
+        final Map<String,Object> map = r.adaptTo(Map.class);
         if ( map != null ) {
             dump(pw, r, map);
         } else if ( r.adaptTo(String.class) != null ) {
@@ -84,8 +80,7 @@ public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
      * @param r the resource
      * @param map the resource's properties
      */
-    @SuppressWarnings("unchecked")
-    protected void dump(PrintWriter pw, Resource r, Map map) {
+    protected void dump(PrintWriter pw, Resource r, Map<String, Object> map) {
         pw.println("** Resource dumped by " + getClass().getSimpleName() + "**");
         pw.println("Resource path:" + r.getPath());
         pw.println("Resource metadata: " + r.getResourceMetadata());
@@ -98,10 +93,10 @@ public class PlainTextRendererServlet extends SlingSafeMethodsServlet {
         pw.println("Resource super type: " + resourceSuperType);
 
         pw.println("\n** Resource properties **");
-        final Iterator<Map.Entry> pi = map.entrySet().iterator();
+        final Iterator<Map.Entry<String,Object>> pi = map.entrySet().iterator();
         while ( pi.hasNext() ) {
-            final Map.Entry p = pi.next();
-            printPropertyValue(pw, p.getKey().toString(), p.getValue(), true);
+            final Map.Entry<String,Object> p = pi.next();
+            printPropertyValue(pw, p.getKey(), p.getValue(), true);
             pw.println();
         }
     }

@@ -32,11 +32,12 @@ import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.servlets.get.impl.helpers.HeadServletResponse;
-import org.apache.sling.servlets.get.impl.helpers.HtmlRendererServlet;
-import org.apache.sling.servlets.get.impl.helpers.JsonRendererServlet;
-import org.apache.sling.servlets.get.impl.helpers.PlainTextRendererServlet;
-import org.apache.sling.servlets.get.impl.helpers.StreamRendererServlet;
-import org.apache.sling.servlets.get.impl.helpers.XMLRendererServlet;
+import org.apache.sling.servlets.get.impl.helpers.HtmlRenderer;
+import org.apache.sling.servlets.get.impl.helpers.JsonRenderer;
+import org.apache.sling.servlets.get.impl.helpers.PlainTextRenderer;
+import org.apache.sling.servlets.get.impl.helpers.Renderer;
+import org.apache.sling.servlets.get.impl.helpers.StreamRenderer;
+import org.apache.sling.servlets.get.impl.helpers.XMLRenderer;
 import org.apache.sling.xss.XSSAPI;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -131,7 +132,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private Map<String, Servlet> rendererMap = new HashMap<>();
+    private Map<String, Renderer> rendererMap = new HashMap<>();
 
     private int jsonMaximumResults;
 
@@ -188,65 +189,52 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         this.indexFiles = null;
     }
 
-    private Servlet getDefaultRendererServlet(final String type) {
-        Servlet servlet = null;
+    private Renderer getDefaultRenderer(final String type) {
+    	Renderer renderer = null;
         if ( EXT_RES.equals(type) ) {
-            servlet = new StreamRendererServlet(index, indexFiles);
+            renderer = new StreamRenderer(index, indexFiles, getServletContext());
         } else if ( EXT_HTML.equals(type) ) {
-            servlet = new HtmlRendererServlet(xssApi);
+            renderer = new HtmlRenderer(xssApi);
         } else if ( EXT_TXT.equals(type) ) {
-            servlet = new PlainTextRendererServlet();
+            renderer = new PlainTextRenderer();
         } else if (EXT_JSON.equals(type) ) {
-            servlet = new JsonRendererServlet(jsonMaximumResults);
+            renderer = new JsonRenderer(jsonMaximumResults);
         } else if ( EXT_XML.equals(type) ) {
-            try {
-                servlet = new XMLRendererServlet();
-            } catch (Throwable t) {
-                logger.warn("Support for getting XML is currently disabled " +
-                        "in the servlets get module. Check whether the JCR API is available.");
-            }
+            renderer = new XMLRenderer();
         }
-        if ( servlet != null ) {
-            try {
-                servlet.init(getServletConfig());
-            } catch (Throwable t) {
-                logger.error("Error while initializing servlet " + servlet, t);
-                servlet = null;
-            }
-        }
-        return servlet;
+        return renderer;
     }
 
     @Override
     public void init() throws ServletException {
         super.init();
 
-        // use the servlet for rendering StreamRendererServlet.EXT_RES as the
-        // streamer servlet
-        Servlet streamerServlet = getDefaultRendererServlet(EXT_RES);
+        // use the Renderer for rendering EXT_RES as the
+        // streamer renderer
+        Renderer streamRenderer = getDefaultRenderer(EXT_RES);
 
-        rendererMap.put(null, streamerServlet);
+        rendererMap.put(null, streamRenderer);
         
-        rendererMap.put(EXT_RES, streamerServlet);
+        rendererMap.put(EXT_RES, streamRenderer);
         
         if (enableHtml) {
             rendererMap.put(EXT_HTML,
-                    getDefaultRendererServlet(EXT_HTML));
+                    getDefaultRenderer(EXT_HTML));
         }
 
         if (enableTxt) {
             rendererMap.put(EXT_TXT,
-                    getDefaultRendererServlet(EXT_TXT));
+                    getDefaultRenderer(EXT_TXT));
         }
 
         if (enableJson) {
             rendererMap.put(EXT_JSON,
-                    getDefaultRendererServlet(EXT_JSON));
+                    getDefaultRenderer(EXT_JSON));
         }
 
         if (enableXml) {
             rendererMap.put(EXT_XML,
-                    getDefaultRendererServlet(EXT_XML));
+                    getDefaultRenderer(EXT_XML));
         }
 
 
@@ -256,17 +244,17 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
                 final int pos = m.indexOf(':');
                 if (pos != -1) {
                     final String type = m.substring(0, pos);
-                    Servlet servlet = rendererMap.get(type);
-                    if ( servlet == null ) {
-                        servlet = getDefaultRendererServlet(type);
+                    Renderer renderer = rendererMap.get(type);
+                    if ( renderer == null ) {
+                        renderer = getDefaultRenderer(type);
                     }
-                    if (servlet != null) {
+                    if (renderer != null) {
                         final String extensions = m.substring(pos + 1);
                         final StringTokenizer st = new StringTokenizer(
                             extensions, ",");
                         while (st.hasMoreTokens()) {
                             final String ext = st.nextToken();
-                            rendererMap.put(ext, servlet);
+                            rendererMap.put(ext, renderer);
                         }
                     } else {
                         logger.warn("Unable to enable renderer alias(es) for {} - type not supported", m);
@@ -291,12 +279,12 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
                 request.getResource().getPath(), "No resource found");
         }
 
-        Servlet rendererServlet;
+        Renderer renderer;
         String ext = request.getRequestPathInfo().getExtension();
-        rendererServlet = rendererMap.get(ext);
+        renderer = rendererMap.get(ext);
 
         // fail if we should not just stream or we cannot support the ext.
-        if (rendererServlet == null) {
+        if (renderer == null) {
             request.getRequestProgressTracker().log(
                 "No renderer for extension " + ext);
             // if this is an included request, sendError() would fail
@@ -314,9 +302,9 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         }
 
         request.getRequestProgressTracker().log(
-            "Using " + rendererServlet.getClass().getName()
+            "Using " + renderer.getClass().getName()
                 + " to render for extension=" + ext);
-        rendererServlet.service(request, response);
+        renderer.render(request, response);
     }
 
     @Override
@@ -330,17 +318,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
     @Override
     public void destroy() {
-
-        for (Servlet servlet : rendererMap.values()) {
-            try {
-                servlet.destroy();
-            } catch (Throwable t) {
-                logger.error("Error while destroying servlet " + servlet, t);
-            }
-        }
-
         rendererMap.clear();
-
         super.destroy();
     }
 }
