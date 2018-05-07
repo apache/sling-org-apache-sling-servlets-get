@@ -34,7 +34,7 @@ import org.apache.sling.api.resource.ResourceMetadata;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class StreamRendererServletTest {
+public class StreamRendererTest {
 
     @Test
     public void testCopyRange() throws IOException {
@@ -135,7 +135,6 @@ public class StreamRendererServletTest {
         final ResourceMetadata meta = Mockito.mock(ResourceMetadata.class);
         final ServletContext sc = Mockito.mock(ServletContext.class);
         
-        @SuppressWarnings("serial")
 		StreamRenderer streamRendererServlet = new StreamRenderer(true,new String []{"/"},sc);       
 
         Mockito.when(resource.getResourceMetadata()).thenReturn(meta);

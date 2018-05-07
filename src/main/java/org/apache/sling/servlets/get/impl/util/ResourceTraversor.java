@@ -49,6 +49,8 @@ public class ResourceTraversor
 
     private final Resource startResource;
 
+	private boolean ecmaSupport;
+
     /** Create a ResourceTraversor, optionally limiting recursion and total number of resources
      * @param levels recursion levels limit, -1 means no limit
      * @param maxResources maximum number of resources to collect, ignored if levels == 1
@@ -56,12 +58,13 @@ public class ResourceTraversor
      * @param tidy not used
      * @throws JSONException
      */
-    public ResourceTraversor(final int levels, final long maxResources, final Resource resource) {
+    public ResourceTraversor(final int levels, final long maxResources, final Resource resource, boolean ecmaSupport) {
         this.maxResources = maxResources;
         this.maxRecursionLevels = levels;
         this.startResource = resource;
         currentQueue = new LinkedList<>();
         nextQueue = new LinkedList<>();
+        this.ecmaSupport = ecmaSupport;
         this.startObject = this.adapt(resource);
     }
 
@@ -135,7 +138,7 @@ public class ResourceTraversor
      * @throws JSONException
      */
     private JsonObjectBuilder adapt(final Resource resource) {
-        return JsonObjectCreator.create(resource);
+        return new JsonObjectCreator(resource,ecmaSupport).create();
     }
 
     public JsonObject getJSONObject() {

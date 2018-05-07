@@ -21,6 +21,7 @@ package org.apache.sling.servlets.get.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,12 +40,14 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.util.ISO8601;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.servlets.get.impl.util.JsonObjectCreator;
 import org.apache.sling.servlets.get.impl.util.JsonToText;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
@@ -77,8 +80,14 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
 
         @AttributeDefinition(name = "Selector", description="List of selectors this servlet handles to display the versions")
         String[] sling_servlet_selectors() default "V";
+        
+        @AttributeDefinition(name = "ECMA date Support", description="Enable deprecated ECMA formatting for JSON response")
+        boolean ecmaSuport() default false;
     }
+    
     private static final long serialVersionUID = 1656887064561951302L;
+    
+    private boolean ecmaSupport;
 
     /** Selector that means "pretty-print the output */
     public static final String TIDY = "tidy";
@@ -93,6 +102,11 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
     public static final int INDENT_SPACES = 2;
     
     private final JsonToText renderer = new JsonToText();
+    
+    @Activate
+    private void activate(Config config) {
+    	this.ecmaSupport = config.ecmaSuport();
+    }
 
     @Override
     public void doGet(SlingHttpServletRequest req, SlingHttpServletResponse resp) throws ServletException,
@@ -176,8 +190,12 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
         return false;
     }
 
-    private static String createdDate(Node node) throws RepositoryException {
-        return JsonObjectCreator.format(node.getProperty(JcrConstants.JCR_CREATED).getDate());
+    private String createdDate(Node node) throws RepositoryException {
+    	Calendar cal = node.getProperty(JcrConstants.JCR_CREATED).getDate();
+    	if (ecmaSupport) {
+            return JsonObjectCreator.formatEcma(cal);
+    	}
+    	return ISO8601.format(cal);
     }
 
 }

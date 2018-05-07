@@ -33,13 +33,25 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
 
+import org.apache.jackrabbit.util.ISO8601;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 
-public abstract class JsonObjectCreator {
+public class JsonObjectCreator {
+	
+	private Resource resource;
+	
+	private ValueMap valueMap;
 
-    public static JsonObjectBuilder create(final Resource resource) {
-        final ValueMap valueMap = resource.getValueMap();
+	private boolean ecmaSupport;
+
+	public JsonObjectCreator(Resource resource, boolean ecmaSupport) {
+		this.resource = resource;
+		this.valueMap = resource.getValueMap();
+		this.ecmaSupport = ecmaSupport;
+	}
+
+    public JsonObjectBuilder create() {
 
         final JsonObjectBuilder obj = Json.createObjectBuilder();
 
@@ -71,7 +83,7 @@ public abstract class JsonObjectCreator {
             while (props.hasNext()) {
                 final Map.Entry<String,Object> prop = props.next();
                 if ( prop.getValue() != null ) {
-                    createProperty(obj, valueMap, prop.getKey(), prop.getValue());
+                    createProperty(obj, prop.getKey(), prop.getValue());
                 }
             }
         }
@@ -85,22 +97,26 @@ public abstract class JsonObjectCreator {
     /** The Locale used to format date values */
     static final Locale DATE_FORMAT_LOCALE = Locale.US;
 
-
-    public static String format(final Calendar date) {
+    
+    public static String formatEcma(final Calendar date) {
         DateFormat formatter = new SimpleDateFormat(ECMA_DATE_FORMAT, DATE_FORMAT_LOCALE);
         formatter.setTimeZone(date.getTimeZone());
         return formatter.format(date.getTime());
     }
 
     /** Dump only a value in the correct format */
-    private static JsonValue getValue(final Object value) {
+    private JsonValue getValue(final Object value ) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
 
         if ( value instanceof InputStream ) {
             // input stream is already handled
             builder.add("entry", 0);
         } else if ( value instanceof Calendar ) {
-            builder.add("entry", format((Calendar)value));
+        	if (ecmaSupport) {
+        		builder.add("entry", JsonObjectCreator.formatEcma((Calendar)value));
+        	} else {
+        		builder.add("entry", ISO8601.format(((Calendar)value)));
+        	}
         } else if ( value instanceof Boolean ) {
             builder.add("entry", (Boolean) value);
         } else if ( value instanceof Long ) {
@@ -120,8 +136,7 @@ public abstract class JsonObjectCreator {
     /**
      * Write a single property
      */
-    private static void createProperty(final JsonObjectBuilder obj,
-                                 final ValueMap valueMap,
+    private void createProperty(final JsonObjectBuilder obj,
                                  final String key,
                                  final Object value) {
         Object[] values = null;
@@ -146,11 +161,11 @@ public abstract class JsonObjectCreator {
             // (colon is not allowed as a JCR property name)
             // in the name, and the value should be the size of the binary data
             if (values == null) {
-                obj.add(":" + key, getLength(valueMap, -1, key, (InputStream)value));
+                obj.add(":" + key, getLength(-1, key, (InputStream)value));
             } else {
                 final JsonArrayBuilder result = Json.createArrayBuilder();
                 for (int i = 0; i < values.length; i++) {
-                    result.add(getLength(valueMap, i, key, (InputStream)values[i]));
+                    result.add(getLength(i, key, (InputStream)values[i]));
                 }
                 obj.add(":" + key, result);
             }
@@ -168,8 +183,7 @@ public abstract class JsonObjectCreator {
         }
     }
 
-    private static long getLength(final ValueMap    valueMap,
-                           final int         index,
+    private long getLength(final int         index,
                            final String      key,
                            final InputStream stream) {
         try {

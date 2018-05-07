@@ -128,6 +128,9 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
                   "this basically means the number of Objects to return. Default value is " +
                   "200.")
         int json_maximumresults() default 200;
+        
+        @AttributeDefinition(name = "ECMA date Support", description="Enable deprecated ECMA formatting for JSON response")
+        boolean ecmaSuport() default false;
     }
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -155,6 +158,8 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
     @Reference(policyOption = ReferencePolicyOption.GREEDY)
     private XSSAPI xssApi;
+
+	private boolean enableEcmaSupport;
     
     public static final String EXT_HTML = "html";
 
@@ -180,6 +185,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         this.enableJson = cfg.enable_json();
         this.enableXml = cfg.enable_xml();
         this.jsonMaximumResults = cfg.json_maximumresults();
+        this.enableEcmaSupport = cfg.ecmaSuport();
     }
 
     @Deactivate
@@ -198,7 +204,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         } else if ( EXT_TXT.equals(type) ) {
             renderer = new PlainTextRenderer();
         } else if (EXT_JSON.equals(type) ) {
-            renderer = new JsonRenderer(jsonMaximumResults);
+            renderer = new JsonRenderer(jsonMaximumResults, enableEcmaSupport);
         } else if ( EXT_XML.equals(type) ) {
             renderer = new XMLRenderer();
         }

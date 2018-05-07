@@ -35,7 +35,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class HtmlRendererServletTest {
+public class HtmlRendererTest {
 
     private SlingHttpServletRequest request;
     private SlingHttpServletResponse response;
@@ -64,9 +64,7 @@ public class HtmlRendererServletTest {
     public void testEscaping() throws ServletException, IOException {
         XSSAPI xss = Mockito.mock(XSSAPI.class);
 
-        final HtmlRenderer servlet = new HtmlRenderer(xss);
-
-        servlet.render(request, response);
+        new HtmlRenderer(xss).render(request, response);
 
         Mockito.verify(xss).encodeForHTML("<script>alert(1);</script>");
     }

@@ -79,7 +79,7 @@ public class JsonRendererServletTest {
 		request.setResource(resolver.getResource(path));
 
 		MockSlingHttpServletResponse response = new MockSlingHttpServletResponse();
-		JsonRenderer servlet = new JsonRenderer(1000);
+		JsonRenderer servlet = new JsonRenderer(1000,true);
 		PrivateAccessor.invoke(servlet, "render",
 				new Class[]{SlingHttpServletRequest.class, SlingHttpServletResponse.class},
 				new Object[]{request, response});
