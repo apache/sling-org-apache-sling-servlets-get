@@ -81,7 +81,7 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
         @AttributeDefinition(name = "Selector", description="List of selectors this servlet handles to display the versions")
         String[] sling_servlet_selectors() default "V";
         
-        @AttributeDefinition(name = "ECMA date Support", description="Enable deprecated ECMA formatting for JSON response")
+        @AttributeDefinition(name = "ECMA date support", description="Enable deprecated ECMA formatting for JSON response")
         boolean ecmaSuport() default false;
     }
     

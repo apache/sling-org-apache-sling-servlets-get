@@ -18,16 +18,13 @@
  */
 package org.apache.sling.servlets.get.impl;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import static org.junit.Assert.assertEquals;
+
 import org.apache.sling.commons.testing.sling.MockResource;
 import org.apache.sling.commons.testing.sling.MockResourceResolver;
 import org.apache.sling.commons.testing.sling.MockSlingHttpServletRequest;
 import org.apache.sling.commons.testing.sling.MockSlingHttpServletResponse;
 import org.apache.sling.servlets.get.impl.helpers.JsonRenderer;
-
-import static org.junit.Assert.assertEquals;
-import junitx.util.PrivateAccessor;
 
 public class JsonRendererServletTest {
 
@@ -79,10 +76,8 @@ public class JsonRendererServletTest {
 		request.setResource(resolver.getResource(path));
 
 		MockSlingHttpServletResponse response = new MockSlingHttpServletResponse();
-		JsonRenderer servlet = new JsonRenderer(1000,true);
-		PrivateAccessor.invoke(servlet, "render",
-				new Class[]{SlingHttpServletRequest.class, SlingHttpServletResponse.class},
-				new Object[]{request, response});
+		JsonRenderer renderer = new JsonRenderer(1000,true);
+		renderer.render(request, response);
 		return response.getOutput().toString();
 	}
 }

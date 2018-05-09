@@ -1,6 +1,8 @@
 {
   "resourceType":"page",
   "created" : "Mon Jan 18 2016 16:30:00 GMT+0200",
+  "active" : true,
+  "number" : 2,
   "one":
   {
     "resourceType":"one"

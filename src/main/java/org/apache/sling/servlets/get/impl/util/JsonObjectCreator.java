@@ -39,6 +39,12 @@ import org.apache.sling.api.resource.ValueMap;
 
 public class JsonObjectCreator {
 	
+    /** Used to format date values */
+    private static final String ECMA_DATE_FORMAT = "EEE MMM dd yyyy HH:mm:ss 'GMT'Z";
+
+    /** The Locale used to format date values */
+    static final Locale DATE_FORMAT_LOCALE = Locale.US;
+	
 	private Resource resource;
 	
 	private ValueMap valueMap;
@@ -50,53 +56,39 @@ public class JsonObjectCreator {
 		this.valueMap = resource.getValueMap();
 		this.ecmaSupport = ecmaSupport;
 	}
+	
+	public JsonObjectBuilder create() {
+		final JsonObjectBuilder obj = Json.createObjectBuilder();
+		
+		ValueMap valueMap = resource.getValueMap();
+		if (valueMap.isEmpty()) {
+			final String value = resource.adaptTo(String.class);
+			if (value != null) {
+				obj.add(resource.getName(), value.toString());
+			}  else {
+				final String[] values = resource.adaptTo(String[].class);
+				if (values != null) {
+					JsonArrayBuilder builder = Json.createArrayBuilder();
+					for (String v : values) {
+						builder.add(v);
+					}
+					obj.add(resource.getName(), builder);
+				}
+			}
+			return obj;
+		} 
 
-    public JsonObjectBuilder create() {
+		final Iterator<Map.Entry<String, Object>> props = valueMap.entrySet().iterator();
 
-        final JsonObjectBuilder obj = Json.createObjectBuilder();
+		while (props.hasNext()) {
+			final Map.Entry<String, Object> prop = props.next();
+			if (prop.getValue() != null) {
+				createProperty(obj, prop.getKey(), prop.getValue());
+			}
+		}
 
-        if (valueMap.isEmpty()) {
-
-            // no map available, try string
-            final String value = resource.adaptTo(String.class);
-            if (value != null) {
-                obj.add(resource.getName(), value.toString());
-            } else {
-                // Try multi-value "property"
-                final String[] values = resource.adaptTo(String[].class);
-                if (values != null) {
-                    JsonArrayBuilder builder = Json.createArrayBuilder();
-                    for (String v : values)
-                    {
-                        builder.add(v);
-                    }
-                    obj.add(resource.getName(), builder);
-                }
-
-            }
-
-        } else {
-
-            final Iterator<Map.Entry<String,Object>> props = valueMap.entrySet().iterator();
-
-            // the node's actual properties
-            while (props.hasNext()) {
-                final Map.Entry<String,Object> prop = props.next();
-                if ( prop.getValue() != null ) {
-                    createProperty(obj, prop.getKey(), prop.getValue());
-                }
-            }
-        }
-
-        return obj;
-    }
-
-    /** Used to format date values */
-    private static final String ECMA_DATE_FORMAT = "EEE MMM dd yyyy HH:mm:ss 'GMT'Z";
-
-    /** The Locale used to format date values */
-    static final Locale DATE_FORMAT_LOCALE = Locale.US;
-
+		return obj;
+	}
     
     public static String formatEcma(final Calendar date) {
         DateFormat formatter = new SimpleDateFormat(ECMA_DATE_FORMAT, DATE_FORMAT_LOCALE);
@@ -121,8 +113,6 @@ public class JsonObjectCreator {
             builder.add("entry", (Boolean) value);
         } else if ( value instanceof Long ) {
             builder.add("entry", (Long) value);
-        } else if ( value instanceof Integer ) {
-            builder.add("entry", (Integer) value);
         } else if ( value instanceof Double ) {
             builder.add("entry", (Double) value);
         } else if ( value != null ) {
@@ -161,7 +151,7 @@ public class JsonObjectCreator {
             // (colon is not allowed as a JCR property name)
             // in the name, and the value should be the size of the binary data
             if (values == null) {
-                obj.add(":" + key, getLength(-1, key, (InputStream)value));
+                obj.add(":" + key, getLength(0, key, (InputStream)value));
             } else {
                 final JsonArrayBuilder result = Json.createArrayBuilder();
                 for (int i = 0; i < values.length; i++) {
@@ -191,14 +181,10 @@ public class JsonObjectCreator {
         } catch (IOException ignore) {}
         long length = -1;
         if ( valueMap != null ) {
-            if ( index == -1 ) {
-                length = valueMap.get(key, length);
-            } else {
-                Long[] lengths = valueMap.get(key, Long[].class);
-                if ( lengths != null && lengths.length > index ) {
-                    length = lengths[index];
-                }
-            }
+        	 Long[] lengths = valueMap.get(key, Long[].class);
+             if ( lengths != null && lengths.length > index ) {
+                 length = lengths[index];
+             }
         }
         return length;
     }

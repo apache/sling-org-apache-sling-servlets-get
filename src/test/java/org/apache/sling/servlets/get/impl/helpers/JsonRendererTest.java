@@ -28,7 +28,6 @@ import java.util.Calendar;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
@@ -110,26 +109,43 @@ public class JsonRendererTest {
     @Test
     public void testISO8601() throws IOException {
     	context.requestPathInfo().setSelectorString("1");
-        jrs.render(request, response);
-        StringReader reader = new StringReader(response.getOutputAsString());
-        JsonObject job = Json.createReader(reader).readObject();
-        String created = job.getString("created");
+        String created = responseToJSON().getString("created");
         Calendar cal = ISO8601.parse(created);
         // at the time of the test the offset it not preserved
-        // if we did direct string comparison the time would be different based on the testers
-        // time zone
-        assertTrue(ISO8601.getYear(cal) == 2016);
+        // if we did direct string comparison the time would be different
+        // based on the testing environments time zone
+        assertTrue(cal != null && ISO8601.getYear(cal) == 2016);
     }
     
     @Test
     public void testECMA() throws IOException {
     	context.requestPathInfo().setSelectorString("1");
-    	jrs = new JsonRenderer(42,true);
-        jrs.render(request, response);
-        String out = response.getOutputAsString();
+    	JsonRenderer ecmajrs = new JsonRenderer(42,true);
+    	ecmajrs.render(request, response);
+    	String out = response.getOutputAsString();
         JsonObject job = Json.createReader(new StringReader(out)).readObject();
         String created = job.getString("created");
         assertTrue(created.startsWith("Mon Jan"));
+    }
+    
+    @Test
+    public void testBoolean() throws IOException {
+    	context.requestPathInfo().setSelectorString("1");
+        assertTrue(responseToJSON().getBoolean("active"));
+    }
+    
+    @Test
+     // JSON impl only support Integers, JCR only supports Long values.  
+    public void testNumber() throws IOException {
+    	context.requestPathInfo().setSelectorString("1");
+        assertTrue(responseToJSON().getInt("number") == 2);
+    }
+    
+    private JsonObject responseToJSON() throws IOException {
+        jrs.render(request, response);
+        String out = response.getOutputAsString();
+        JsonObject job = Json.createReader(new StringReader(out)).readObject();
+        return job;
     }
     
     

@@ -83,9 +83,7 @@ public class XMLRenderer implements Renderer {
                     } else {
                         resp.sendError(HttpServletResponse.SC_NO_CONTENT); // NO Content
                     }
-                } catch (RepositoryException e) {
-                    throw new ServletException("Unable to export resource as xml: " + r, e);
-                } catch (SAXException e) {
+                } catch (RepositoryException|SAXException e) {
                     throw new ServletException("Unable to export resource as xml: " + r, e);
                 }
             } else {

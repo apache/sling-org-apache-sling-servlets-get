@@ -129,7 +129,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
                   "200.")
         int json_maximumresults() default 200;
         
-        @AttributeDefinition(name = "ECMA date Support", description="Enable deprecated ECMA formatting for JSON response")
+        @AttributeDefinition(name = "ECMA date support", description="Enable deprecated ECMA formatting for JSON response")
         boolean ecmaSuport() default false;
     }
 
