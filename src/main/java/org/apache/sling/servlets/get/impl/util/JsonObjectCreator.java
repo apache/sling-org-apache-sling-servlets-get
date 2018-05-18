@@ -38,58 +38,58 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 
 public class JsonObjectCreator {
-	
+
     /** Used to format date values */
     private static final String ECMA_DATE_FORMAT = "EEE MMM dd yyyy HH:mm:ss 'GMT'Z";
 
     /** The Locale used to format date values */
     static final Locale DATE_FORMAT_LOCALE = Locale.US;
-	
-	private Resource resource;
-	
-	private ValueMap valueMap;
 
-	private boolean ecmaSupport;
+    private Resource resource;
 
-	public JsonObjectCreator(Resource resource, boolean ecmaSupport) {
-		this.resource = resource;
-		this.valueMap = resource.getValueMap();
-		this.ecmaSupport = ecmaSupport;
-	}
-	
-	public JsonObjectBuilder create() {
-		final JsonObjectBuilder obj = Json.createObjectBuilder();
-		
-		ValueMap valueMap = resource.getValueMap();
-		if (valueMap.isEmpty()) {
-			final String value = resource.adaptTo(String.class);
-			if (value != null) {
-				obj.add(resource.getName(), value.toString());
-			}  else {
-				final String[] values = resource.adaptTo(String[].class);
-				if (values != null) {
-					JsonArrayBuilder builder = Json.createArrayBuilder();
-					for (String v : values) {
-						builder.add(v);
-					}
-					obj.add(resource.getName(), builder);
-				}
-			}
-			return obj;
-		} 
+    private ValueMap valueMap;
 
-		final Iterator<Map.Entry<String, Object>> props = valueMap.entrySet().iterator();
+    private boolean ecmaSupport;
 
-		while (props.hasNext()) {
-			final Map.Entry<String, Object> prop = props.next();
-			if (prop.getValue() != null) {
-				createProperty(obj, prop.getKey(), prop.getValue());
-			}
-		}
+    public JsonObjectCreator(Resource resource, boolean ecmaSupport) {
+        this.resource = resource;
+        this.valueMap = resource.getValueMap();
+        this.ecmaSupport = ecmaSupport;
+    }
 
-		return obj;
-	}
-    
+    public JsonObjectBuilder create() {
+        final JsonObjectBuilder obj = Json.createObjectBuilder();
+
+        ValueMap valueMap = resource.getValueMap();
+        if (valueMap.isEmpty()) {
+            final String value = resource.adaptTo(String.class);
+            if (value != null) {
+                obj.add(resource.getName(), value.toString());
+            } else {
+                final String[] values = resource.adaptTo(String[].class);
+                if (values != null) {
+                    JsonArrayBuilder builder = Json.createArrayBuilder();
+                    for (String v : values) {
+                        builder.add(v);
+                    }
+                    obj.add(resource.getName(), builder);
+                }
+            }
+            return obj;
+        }
+
+        final Iterator<Map.Entry<String, Object>> props = valueMap.entrySet().iterator();
+
+        while (props.hasNext()) {
+            final Map.Entry<String, Object> prop = props.next();
+            if (prop.getValue() != null) {
+                createProperty(obj, prop.getKey(), prop.getValue());
+            }
+        }
+
+        return obj;
+    }
+
     public static String formatEcma(final Calendar date) {
         DateFormat formatter = new SimpleDateFormat(ECMA_DATE_FORMAT, DATE_FORMAT_LOCALE);
         formatter.setTimeZone(date.getTimeZone());
@@ -97,25 +97,25 @@ public class JsonObjectCreator {
     }
 
     /** Dump only a value in the correct format */
-    private JsonValue getValue(final Object value ) {
+    private JsonValue getValue(final Object value) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
 
-        if ( value instanceof InputStream ) {
+        if (value instanceof InputStream) {
             // input stream is already handled
             builder.add("entry", 0);
-        } else if ( value instanceof Calendar ) {
-        	if (ecmaSupport) {
-        		builder.add("entry", JsonObjectCreator.formatEcma((Calendar)value));
-        	} else {
-        		builder.add("entry", ISO8601.format(((Calendar)value)));
-        	}
-        } else if ( value instanceof Boolean ) {
+        } else if (value instanceof Calendar) {
+            if (ecmaSupport) {
+                builder.add("entry", JsonObjectCreator.formatEcma((Calendar) value));
+            } else {
+                builder.add("entry", ISO8601.format(((Calendar) value)));
+            }
+        } else if (value instanceof Boolean) {
             builder.add("entry", (Boolean) value);
-        } else if ( value instanceof Long ) {
+        } else if (value instanceof Long) {
             builder.add("entry", (Long) value);
-        } else if ( value instanceof Double ) {
+        } else if (value instanceof Double) {
             builder.add("entry", (Double) value);
-        } else if ( value != null ) {
+        } else if (value != null) {
             builder.add("entry", value.toString());
         } else {
             builder.add("entry", "");
@@ -126,36 +126,33 @@ public class JsonObjectCreator {
     /**
      * Write a single property
      */
-    private void createProperty(final JsonObjectBuilder obj,
-                                 final String key,
-                                 final Object value) {
+    private void createProperty(final JsonObjectBuilder obj, final String key, final Object value) {
         Object[] values = null;
         if (value.getClass().isArray()) {
             final int length = Array.getLength(value);
             // write out empty array
-            if ( length == 0 ) {
+            if (length == 0) {
                 obj.add(key, Json.createArrayBuilder());
                 return;
             }
             values = new Object[Array.getLength(value)];
-            for(int i=0; i<length; i++) {
+            for (int i = 0; i < length; i++) {
                 values[i] = Array.get(value, i);
             }
         }
 
         // special handling for binaries: we dump the length and not the data!
-        if (value instanceof InputStream
-            || (values != null && values[0] instanceof InputStream)) {
+        if (value instanceof InputStream || (values != null && values[0] instanceof InputStream)) {
             // TODO for now we mark binary properties with an initial colon in
             // their name
             // (colon is not allowed as a JCR property name)
             // in the name, and the value should be the size of the binary data
             if (values == null) {
-                obj.add(":" + key, getLength(0, key, (InputStream)value));
+                obj.add(":" + key, getLength(0, key, (InputStream) value));
             } else {
                 final JsonArrayBuilder result = Json.createArrayBuilder();
                 for (int i = 0; i < values.length; i++) {
-                    result.add(getLength(i, key, (InputStream)values[i]));
+                    result.add(getLength(i, key, (InputStream) values[i]));
                 }
                 obj.add(":" + key, result);
             }
@@ -173,18 +170,17 @@ public class JsonObjectCreator {
         }
     }
 
-    private long getLength(final int         index,
-                           final String      key,
-                           final InputStream stream) {
+    private long getLength(final int index, final String key, final InputStream stream) {
         try {
             stream.close();
-        } catch (IOException ignore) {}
+        } catch (IOException ignore) {
+        }
         long length = -1;
-        if ( valueMap != null ) {
-        	 Long[] lengths = valueMap.get(key, Long[].class);
-             if ( lengths != null && lengths.length > index ) {
-                 length = lengths[index];
-             }
+        if (valueMap != null) {
+            Long[] lengths = valueMap.get(key, Long[].class);
+            if (lengths != null && lengths.length > index) {
+                length = lengths[index];
+            }
         }
         return length;
     }

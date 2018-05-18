@@ -51,7 +51,7 @@ public class StreamRendererTest {
         assertEquals(2, result.length());
         assertEquals("34", result);
     }
-    
+
     private void runTests(int randomSeed) throws IOException {
         final Random random = new Random(randomSeed);
         assertCopyRange(random, StreamRenderer.IO_BUFFER_SIZE * 2 + 42);
@@ -114,8 +114,7 @@ public class StreamRendererTest {
         }, a, b);
     }
 
-    private void assertCopyRange(
-            byte[] expected, InputStream input, int a, int b) throws IOException {
+    private void assertCopyRange(byte[] expected, InputStream input, int a, int b) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
         StreamRenderer.staticCopyRange(input, output, a, b);
@@ -126,19 +125,20 @@ public class StreamRendererTest {
             assertEquals(expected[i], actual[i - a]);
         }
     }
-    
+
     @Test
     public void test_setHeaders() throws Throwable {
-        
+
         final Resource resource = Mockito.mock(Resource.class);
-        final SlingHttpServletResponse response = Mockito.mock(SlingHttpServletResponse .class);
+        final SlingHttpServletResponse response = Mockito.mock(SlingHttpServletResponse.class);
         final ResourceMetadata meta = Mockito.mock(ResourceMetadata.class);
         final ServletContext sc = Mockito.mock(ServletContext.class);
-        
-		StreamRenderer streamRendererServlet = new StreamRenderer(true,new String []{"/"},sc);       
+
+        StreamRenderer streamRendererServlet = new StreamRenderer(true, new String[] { "/" }, sc);
 
         Mockito.when(resource.getResourceMetadata()).thenReturn(meta);
-        PrivateAccessor.invoke(streamRendererServlet, "setHeaders", new Class[]{Resource.class, SlingHttpServletResponse.class}, new Object[]{resource, response});
-        Mockito.verify(response,Mockito.times(1)).setContentType("application/octet-stream");
+        PrivateAccessor.invoke(streamRendererServlet, "setHeaders",
+                new Class[] { Resource.class, SlingHttpServletResponse.class }, new Object[] { resource, response });
+        Mockito.verify(response, Mockito.times(1)).setContentType("application/octet-stream");
     }
 }

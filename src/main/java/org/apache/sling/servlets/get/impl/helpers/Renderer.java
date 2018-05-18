@@ -24,6 +24,6 @@ import org.apache.sling.api.SlingHttpServletResponse;
 
 public interface Renderer {
 
-	void render(final SlingHttpServletRequest req, final SlingHttpServletResponse resp) throws IOException;
+    void render(final SlingHttpServletRequest req, final SlingHttpServletResponse resp) throws IOException;
 
 }
