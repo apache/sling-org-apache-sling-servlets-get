@@ -115,7 +115,9 @@ public class JsonRenderer implements Renderer {
                     // backwards compatibility. Output might be slightly different
                     // with prettyPrint and no options
                     StringWriter writer = new StringWriter();
-                    Json.createGenerator(writer).write(traversor.getJSONObject()).close();
+                    try (JsonGenerator json = Json.createGenerator(writer)){
+                        json.write(traversor.getJSONObject());
+                    }
                     resp.getWriter().write(writer.toString());
                 }
 
@@ -125,14 +127,15 @@ public class JsonRenderer implements Renderer {
                 String tidyUrl = (tidy) ? "tidy." : "";
                 resp.setStatus(HttpServletResponse.SC_MULTIPLE_CHOICES);
                 StringWriter writer = new StringWriter();
-                JsonGenerator json = Json.createGenerator(writer);
-                json.writeStartArray();
-                while (allowedLevel >= 0) {
-                    json.write(r.getResourceMetadata().getResolutionPath() + "." + tidyUrl + allowedLevel + ".json");
-                    allowedLevel--;
+                try (JsonGenerator json = Json.createGenerator(writer)) {
+                    json.writeStartArray();
+                    while (allowedLevel >= 0) {
+                        json.write(
+                                r.getResourceMetadata().getResolutionPath() + "." + tidyUrl + allowedLevel + ".json");
+                        allowedLevel--;
+                    }
+                    json.writeEnd();
                 }
-                json.writeEnd();
-                json.close();
                 resp.getWriter().write(writer.toString());
             }
         } catch (Exception je) {

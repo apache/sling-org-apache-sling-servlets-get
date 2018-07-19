@@ -110,9 +110,7 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
         response.setCharacterEncoding("UTF-8");
 
         final Writer out = response.getWriter();
-        final JsonGenerator w = Json.createGenerator(out);
-
-        try {
+        try (JsonGenerator w = Json.createGenerator(out)){
             w.writeStartObject();
             for (final Map.Entry<String, String> e : data.entrySet()) {
                 w.write(e.getKey(), e.getValue());
@@ -120,9 +118,8 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
             w.writeEnd();
         } catch (JsonException jse) {
             out.write(jse.toString());
-            out.flush();
         } finally {
-            w.flush();
+            out.flush();
         }
     }
 
