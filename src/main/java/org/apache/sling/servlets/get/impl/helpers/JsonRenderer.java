@@ -204,7 +204,7 @@ public class JsonRenderer implements Renderer {
      * @throws SlingException wrapping the given exception
      */
     private void reportException(Exception e) {
-        log.warn("Error in JsonRendererServlet: " + e.toString(), e);
+        log.warn("Error in JsonRendererServlet: {}", e);
         throw new SlingException(e.toString(), e);
     }
 }
