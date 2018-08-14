@@ -61,6 +61,9 @@
                             javax.jcr.version;resolution:=optional,
                             *
                         </Import-Package>
+                        <Conditional-Package>
+                            org.apache.jackrabbit.util
+                        </Conditional-Package>
                     </instructions>
                 </configuration>
             </plugin>
