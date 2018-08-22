@@ -129,7 +129,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
                   "200.")
         int json_maximumresults() default 200;
         
-        @AttributeDefinition(name = "ECMA date support", description="Enable deprecated ECMA formatting for JSON response")
+        @AttributeDefinition(name = "Legacy ECMA date format", description="Enable legacy Sling ECMA format for dates")
         boolean ecmaSuport() default false;
     }
 
@@ -186,6 +186,9 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         this.enableXml = cfg.enable_xml();
         this.jsonMaximumResults = cfg.json_maximumresults();
         this.enableEcmaSupport = cfg.ecmaSuport();
+        if (enableEcmaSupport) {
+            logger.info("Legacy ECMA format is enabled");
+        }
     }
 
     @Deactivate
