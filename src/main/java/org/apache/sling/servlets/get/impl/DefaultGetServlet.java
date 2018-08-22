@@ -130,7 +130,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         int json_maximumresults() default 200;
         
         @AttributeDefinition(name = "Legacy ECMA date format", description="Enable legacy Sling ECMA format for dates")
-        boolean ecmaSuport() default false;
+        boolean ecmaSuport() default true;
     }
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
