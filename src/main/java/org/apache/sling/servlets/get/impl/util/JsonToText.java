@@ -160,7 +160,9 @@ public class JsonToText
     /** Make a JSON String of an Object value, with rendering options
      */
     private String valueToString(JsonValue value, Options opt) {
-        if (value instanceof JsonObject || value instanceof JsonArray) {
+        if (value instanceof JsonObject) {
+            return prettyPrint((JsonObject)value, opt);
+        } else if (value instanceof JsonArray) {
             return prettyPrint((JsonArray)value, opt);
         }
         return value.toString();
