@@ -148,7 +148,7 @@ public class JsonObjectCreator {
             // (colon is not allowed as a JCR property name)
             // in the name, and the value should be the size of the binary data
             if (values == null) {
-                obj.add(":" + key, getLength(0, key, (InputStream) value));
+                obj.add(":" + key, getLength(-1, key, (InputStream) value));
             } else {
                 final JsonArrayBuilder result = Json.createArrayBuilder();
                 for (int i = 0; i < values.length; i++) {
@@ -175,13 +175,15 @@ public class JsonObjectCreator {
             stream.close();
         } catch (IOException ignore) {
         }
-        long length = -1;
         if (valueMap != null) {
+            if (index == -1) {
+                return valueMap.get(key, index);
+            }
             Long[] lengths = valueMap.get(key, Long[].class);
             if (lengths != null && lengths.length > index) {
-                length = lengths[index];
+                return lengths[index];
             }
         }
-        return length;
+        return -1;
     }
 }
