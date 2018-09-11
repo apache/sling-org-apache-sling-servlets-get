@@ -17,5 +17,11 @@
     "tags" : {
         "resourceType" : "tags"
     }
+  },
+  "booleans" : {
+    "b1" : true,
+    "b2" : false,
+    "s1" : "true",
+    "s2" : "false"
   }
 }

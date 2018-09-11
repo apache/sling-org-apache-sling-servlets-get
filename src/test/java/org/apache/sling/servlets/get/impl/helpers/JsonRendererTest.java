@@ -109,7 +109,7 @@ public class JsonRendererTest {
     @Test
     public void testISO8601() throws IOException {
         context.requestPathInfo().setSelectorString("1");
-        String created = responseToJSON().getString("created");
+        String created = getJsonFromReader().getString("created");
         Calendar cal = ISO8601.parse(created);
         // at the time of the test the offset it not preserved
         // if we did direct string comparison the time would be different
@@ -131,21 +131,50 @@ public class JsonRendererTest {
     @Test
     public void testBoolean() throws IOException {
         context.requestPathInfo().setSelectorString("1");
-        assertTrue(responseToJSON().getBoolean("active"));
+        assertTrue(getJsonFromReader().getBoolean("active"));
     }
 
     @Test
     // JSON impl only support Integers, JCR only supports Long values.
     public void testNumber() throws IOException {
         context.requestPathInfo().setSelectorString("1");
-        assertTrue(responseToJSON().getInt("number") == 2);
+        assertTrue(getJsonFromReader().getInt("number") == 2);
     }
 
-    private JsonObject responseToJSON() throws IOException {
+    @Test
+    // TODO investigating SLING-7890 - needs cleanup once we find out exactly what's going on
+    public void testBooleansNoTidy() throws IOException {
+        context.currentResource("/content/booleans");
+        final String expected = "{\"b2\":false,\"jcr:primaryType\":\"nt:unstructured\",\"s1\":\"true\",\"b1\":true,\"s2\":\"false\"}";
+        assertEquals(expected, getJsonFromRequestResponse());
+    }
+
+    @Test
+    // TODO investigating SLING-7890 - needs cleanup once we find out exactly what's going on
+    public void testBooleansWithTidy() throws IOException {
+        context.currentResource("/content/booleans");
+        context.requestPathInfo().setSelectorString(".tidy");
+        final String expected = "{\n" +
+            "  \"b2\": false,\n" +
+            "  \"jcr:primaryType\": \"nt:unstructured\",\n" +
+            "  \"s1\": \"true\",\n" +
+            "  \"b1\": true,\n" +
+            "  \"s2\": \"false\"\n" +
+            "  }";
+        assertEquals(expected, getJsonFromRequestResponse());
+    }
+
+    private JsonObject getJsonFromReader() throws IOException {
         jrs.render(request, response);
         String out = response.getOutputAsString();
         JsonObject job = Json.createReader(new StringReader(out)).readObject();
         return job;
+    }
+
+    private String getJsonFromRequestResponse() throws IOException {
+        final JsonRenderer renderer = new JsonRenderer(1000, true);
+        renderer.render(request, response);
+        return response.getOutputAsString();
     }
 
 }
