@@ -41,18 +41,13 @@ import org.osgi.service.component.annotations.Component;
  * The <code>SlingInfoServlet</code>
  */
 @SuppressWarnings("serial")
-@Component(service = Servlet.class,
-    property = {
-            "service.description=Sling Info Servlet",
-            "service.vendor=The Apache Software Foundation",
-            "sling.servlet.paths=/system/sling/info"
-    })
+@Component(service = Servlet.class, property = { "service.description=Sling Info Servlet",
+        "service.vendor=The Apache Software Foundation", "sling.servlet.paths=/system/sling/info" })
 public class SlingInfoServlet extends SlingSafeMethodsServlet {
 
     private static final String CACHE_CONTROL_HEADER = "Cache-Control";
 
-    private static final String CACHE_CONTROL_HEADER_VALUE =
-        "private, no-store, no-cache, max-age=0, must-revalidate";
+    private static final String CACHE_CONTROL_HEADER_VALUE = "private, no-store, no-cache, max-age=0, must-revalidate";
 
     static final String PROVIDER_LABEL = "sessionInfo";
 
@@ -71,22 +66,21 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
     }
 
     @Override
-    protected void doGet(final SlingHttpServletRequest request,
-            final SlingHttpServletResponse response) throws IOException {
+    protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
+            throws IOException {
 
         Map<String, String> data = null;
 
         if (request.getRequestPathInfo().getSelectors().length > 0) {
             final String label = request.getRequestPathInfo().getSelectors()[0];
-            if ( PROVIDER_LABEL.equals(label) ) {
+            if (PROVIDER_LABEL.equals(label)) {
                 data = this.getInfo(request);
             }
         }
 
         if (data == null) {
 
-            response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                "Unknown Info Request");
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown Info Request");
 
         } else {
             response.setHeader(CACHE_CONTROL_HEADER, CACHE_CONTROL_HEADER_VALUE);
@@ -103,28 +97,24 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
         }
     }
 
-    private void renderJson(final SlingHttpServletResponse response,
-            final Map<String, String> data) throws IOException {
+    private void renderJson(final SlingHttpServletResponse response, final Map<String, String> data)
+            throws IOException {
         // render data in JSON format
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         final Writer out = response.getWriter();
-        try (JsonGenerator w = Json.createGenerator(out)){
-            w.writeStartObject();
-            for (final Map.Entry<String, String> e : data.entrySet()) {
-                w.write(e.getKey(), e.getValue());
-            }
-            w.writeEnd();
-        } catch (JsonException jse) {
-            out.write(jse.toString());
-        } finally {
-            out.flush();
+        //deliberately not closing, as that closes the response out.
+        final JsonGenerator w = Json.createGenerator(out);
+        w.writeStartObject();
+        for (final Map.Entry<String, String> e : data.entrySet()) {
+            w.write(e.getKey(), e.getValue());
         }
+        w.writeEnd();
     }
 
-    private void renderHtml(final SlingHttpServletResponse response,
-            final Map<String, String> data) throws IOException {
+    private void renderHtml(final SlingHttpServletResponse response, final Map<String, String> data)
+            throws IOException {
         // render data in JSON format
         response.setContentType("text/html");
         response.setCharacterEncoding("UTF-8");
@@ -149,8 +139,8 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
         out.flush();
     }
 
-    private void renderPlainText(final SlingHttpServletResponse response,
-            final Map<String, String> data) throws IOException {
+    private void renderPlainText(final SlingHttpServletResponse response, final Map<String, String> data)
+            throws IOException {
 
         // render data in JSON format
         response.setContentType("text/plain");
