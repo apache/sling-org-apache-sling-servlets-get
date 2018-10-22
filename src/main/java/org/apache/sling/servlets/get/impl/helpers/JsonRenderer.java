@@ -17,6 +17,7 @@
 package org.apache.sling.servlets.get.impl.helpers;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import javax.json.Json;
@@ -103,13 +104,14 @@ public class JsonRenderer implements Renderer {
             reportException(e);
         }
         try {
+            final PrintWriter printWriter = resp.getWriter();
             // Dump the resource if we can
             if (allowDump) {
                 if (tidy || harray) {
                     final JsonToText.Options opt = renderer.options()
                             .withIndent(tidy ? INDENT_SPACES : 0)
                             .withArraysForChildren(harray);
-                    resp.getWriter().write(renderer.prettyPrint(traversor.getJSONObject(), opt));
+                    printWriter.write(renderer.prettyPrint(traversor.getJSONObject(), opt));
                 } else {
                     // If no rendering options, use the plain toString() method, for
                     // backwards compatibility. Output might be slightly different
@@ -118,7 +120,7 @@ public class JsonRenderer implements Renderer {
                     try (JsonGenerator json = Json.createGenerator(writer)){
                         json.write(traversor.getJSONObject());
                     }
-                    resp.getWriter().write(writer.toString());
+                    printWriter.write(writer.toString());
                 }
 
             } else {
@@ -136,8 +138,9 @@ public class JsonRenderer implements Renderer {
                     }
                     json.writeEnd();
                 }
-                resp.getWriter().write(writer.toString());
+                printWriter.write(writer.toString());
             }
+            printWriter.flush();
         } catch (Exception je) {
             reportException(je);
         }
