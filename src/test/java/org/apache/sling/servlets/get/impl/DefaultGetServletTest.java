@@ -21,12 +21,27 @@ package org.apache.sling.servlets.get.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.util.Map;
 
+import javax.json.Json;
+import javax.json.JsonReader;
 import javax.servlet.Servlet;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.request.RequestProgressTracker;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.commons.testing.sling.MockResource;
+import org.apache.sling.commons.testing.sling.MockResourceResolver;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -61,5 +76,58 @@ public class DefaultGetServletTest {
         assertNotNull(map.get(DefaultGetServlet.EXT_JSON));
         assertNotNull(map.get("pdf"));
         assertNotNull(map.get(null));
+    }
+
+    @Test
+    public void verifyPrintWriterFlushesOutputStream() throws Exception {
+        // GIVEN
+        String expectedJsonString = "{\"resourceType\":\"page\"}";
+        MockResourceResolver mockResourceResolver = new MockResourceResolver();
+        Resource mockResource = new MockResource(mockResourceResolver, "/content/page", "page");
+        mockResourceResolver.addResource(mockResource);
+
+        final DefaultGetServlet.Config config = Mockito.mock(DefaultGetServlet.Config.class);
+        Mockito.when(config.enable_json()).thenReturn(true);
+        final ServletConfig servletConfig = Mockito.mock(ServletConfig.class);
+
+        final DefaultGetServlet defaultGetServlet = new DefaultGetServlet() {
+            @Override
+            public ServletConfig getServletConfig() {
+                return servletConfig;
+            }
+        };
+        defaultGetServlet.activate(config);
+        defaultGetServlet.init();
+
+        RequestPathInfo requestPathInfo = Mockito.mock(RequestPathInfo.class);
+        Mockito.when(requestPathInfo.getExtension()).thenReturn(DefaultGetServlet.EXT_JSON);
+        Mockito.when(requestPathInfo.getSelectors()).thenReturn(new String[]{"-1"});
+
+        RequestProgressTracker requestProgressTracker = Mockito.mock(RequestProgressTracker.class);
+
+        SlingHttpServletRequest slingHttpServletRequest = Mockito.mock(SlingHttpServletRequest.class);
+        Mockito.when(slingHttpServletRequest.getProtocol()).thenReturn("HTTP/1.1");
+        Mockito.when(slingHttpServletRequest.getMethod()).thenReturn("GET");
+        Mockito.when(slingHttpServletRequest.getResourceResolver()).thenReturn(mockResourceResolver);
+        Mockito.when(slingHttpServletRequest.getResource()).thenReturn(mockResource);
+        Mockito.when(slingHttpServletRequest.getRequestPathInfo()).thenReturn(requestPathInfo);
+        Mockito.when(slingHttpServletRequest.getRequestProgressTracker()).thenReturn(requestProgressTracker);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        PrintWriter printWriter = new PrintWriter(byteArrayOutputStream);
+
+        SlingHttpServletResponse slingHttpServletResponse = Mockito.mock(SlingHttpServletResponse.class);
+        Mockito.when(slingHttpServletResponse.getWriter()).thenReturn(printWriter);
+
+        // WHEN
+        defaultGetServlet.service(slingHttpServletRequest, slingHttpServletResponse);
+
+        // THEN
+        String actualJsonString = byteArrayOutputStream.toString();
+        Assert.assertThat(actualJsonString, CoreMatchers.not(CoreMatchers.is("")));
+
+        JsonReader expected = Json.createReader(new StringReader(expectedJsonString));
+        JsonReader actual = Json.createReader(new StringReader(actualJsonString));
+        Assert.assertThat(actual.read(), CoreMatchers.is(expected.read()));
     }
 }
