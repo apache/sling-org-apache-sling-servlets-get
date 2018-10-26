@@ -26,6 +26,10 @@ import org.apache.sling.commons.testing.sling.MockSlingHttpServletRequest;
 import org.apache.sling.commons.testing.sling.MockSlingHttpServletResponse;
 import org.apache.sling.servlets.get.impl.helpers.JsonRenderer;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public class JsonRendererServletTest {
 
     private static MockResourceResolver resolver;
@@ -81,7 +85,21 @@ public class JsonRendererServletTest {
         request.setResourceResolver(resolver);
         request.setResource(resolver.getResource(path));
 
-        MockSlingHttpServletResponse response = new MockSlingHttpServletResponse();
+        // Print writer (MockWriter) of MockSlingHttpServletResponse sets its buffer to 0 when flushed therefore we
+        // override the methods #getWriter and #getOutput
+        MockSlingHttpServletResponse response = new MockSlingHttpServletResponse() {
+            private StringWriter stringWriter = new StringWriter();
+
+            @Override
+            public PrintWriter getWriter() {
+                return new PrintWriter(stringWriter);
+            }
+
+            @Override
+            public StringBuffer getOutput() {
+                return stringWriter.getBuffer();
+            }
+        };
         JsonRenderer renderer = new JsonRenderer(1000, true);
         renderer.render(request, response);
         return response.getOutput().toString();
