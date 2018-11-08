@@ -19,7 +19,6 @@ package org.apache.sling.servlets.get.impl.helpers;
 import java.io.IOException;
 
 import javax.jcr.Node;
-import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -30,7 +29,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.xml.sax.ContentHandler;
-import org.xml.sax.SAXException;
 
 /**
  * The <code>XMLRendererServlet</code> renders the current resource in XML
@@ -43,7 +41,8 @@ public class XMLRenderer implements Renderer {
     private static final String SYSVIEW = "sysview";
     private static final String DOCVIEW = "docview";
 
- 
+
+    @Override
     public void render(SlingHttpServletRequest req,
                          SlingHttpServletResponse resp)
     throws IOException {
@@ -83,7 +82,7 @@ public class XMLRenderer implements Renderer {
                     } else {
                         resp.sendError(HttpServletResponse.SC_NO_CONTENT); // NO Content
                     }
-                } catch (RepositoryException|SAXException e) {
+                } catch (Exception e) {
                     throw new ServletException("Unable to export resource as xml: " + r, e);
                 }
             } else {
