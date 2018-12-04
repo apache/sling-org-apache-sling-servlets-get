@@ -111,6 +111,7 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
             w.write(e.getKey(), e.getValue());
         }
         w.writeEnd();
+        w.flush();
     }
 
     private void renderHtml(final SlingHttpServletResponse response, final Map<String, String> data)
