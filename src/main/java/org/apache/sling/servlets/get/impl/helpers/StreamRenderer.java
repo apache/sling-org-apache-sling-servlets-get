@@ -29,6 +29,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.servlet.RequestDispatcher;
@@ -42,6 +43,8 @@ import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.redirect.RedirectResolver;
+import org.apache.sling.api.redirect.RedirectResponse;
 import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
@@ -139,6 +142,25 @@ public class StreamRenderer implements Renderer {
             long modifTime = meta.getModificationTime();
             if (unmodified(request, modifTime)) {
                 response.setStatus(SC_NOT_MODIFIED);
+                return;
+            }
+        }
+
+        /*
+         * Check if this resource can be adapted to a redirect resolver and the that the
+         * resource resolves to a redirect, if it does, set the headers, status code and send the redirect
+         * otherwise do nothing.
+         */
+        RedirectResolver redirectResolver = resource.adaptTo(RedirectResolver.class);
+        if ( redirectResolver != null ) {
+            RedirectResponseImpl redirectResponse = new RedirectResponseImpl();
+            redirectResolver.resolve(request, redirectResponse);
+            if ( redirectResponse.hasResolved() ) {
+                for ( String[] header : redirectResponse.getHeaders() ) {
+                    response.setHeader(header[0], header[1]);
+                }
+                response.setStatus(redirectResponse.getStatus());
+                response.sendRedirect(redirectResponse.getRedirect());
                 return;
             }
         }
@@ -755,4 +777,45 @@ public class StreamRenderer implements Renderer {
         }
 
     }
+
+
+    // ------ RedirectResponse used for detecting redirects on binaries.
+    protected class RedirectResponseImpl extends RedirectResponse {
+        private int status;
+        private String redirect = null;
+        private List<String[]> headers = new ArrayList<String[]>();
+
+        public boolean hasResolved() {
+            return redirect != null && this.status != NO_REDIRECT;
+        }
+
+        public Iterable<String[]> getHeaders() {
+            return headers;
+        }
+
+
+        public String getRedirect() {
+            return redirect;
+        }
+
+        public int getStatus() {
+            return this.status;
+        }
+
+        @Override
+        public void setStatus(int status) {
+            this.status = status;
+        }
+
+        @Override
+        public void setHeader(String name, String value) {
+            headers.add(new String[]{ name, value});
+        }
+
+        @Override
+        public void setRedirect(String redirect) {
+            this.redirect = redirect;
+        }
+    }
+
 }

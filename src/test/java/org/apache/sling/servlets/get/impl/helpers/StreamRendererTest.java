@@ -25,12 +25,21 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+
 import junitx.util.PrivateAccessor;
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.redirect.RedirectResolver;
+import org.apache.sling.api.redirect.RedirectResponse;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -141,4 +150,98 @@ public class StreamRendererTest {
                 new Class[] { Resource.class, SlingHttpServletResponse.class }, new Object[] { resource, response });
         Mockito.verify(response, Mockito.times(1)).setContentType("application/octet-stream");
     }
+
+
+
+
+    @Test
+    public void test_streamRedirect() throws Exception {
+        final Resource resource = Mockito.mock(Resource.class);
+        final SlingHttpServletRequest request = Mockito.mock(SlingHttpServletRequest.class);
+        final SlingHttpServletResponse response = Mockito.mock(SlingHttpServletResponse.class);
+        final ResourceMetadata meta = Mockito.mock(ResourceMetadata.class);
+        final ServletContext sc = Mockito.mock(ServletContext.class);
+        final RequestPathInfo requestPathInfo = Mockito.mock(RequestPathInfo.class);
+
+        StreamRenderer streamRendererServlet = new StreamRenderer(true, new String[] { "/" }, sc);
+
+        Mockito.when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
+        Mockito.when(request.getResource()).thenReturn(resource);
+
+        Mockito.when(resource.getResourceMetadata()).thenReturn(meta);
+        List<String[]> headers = new ArrayList<>();
+        headers.add(new String[] { "x-test", "header"});
+
+        Mockito.when(resource.adaptTo(Mockito.eq(RedirectResolver.class))).thenReturn(
+                new RedirectResolverForTesting("https://xyz.blobs.com//container/id",
+                headers, 301));
+        streamRendererServlet.render(request, response);
+
+        Mockito.verify(response, Mockito.times(1)).setHeader("x-test", "header");
+        Mockito.verify(response, Mockito.times(1)).setStatus(301);
+        Mockito.verify(response, Mockito.times(1)).sendRedirect("https://xyz.blobs.com//container/id");
+
+    }
+
+    @Test
+    public void test_streamNoRedirect() throws Exception {
+        final Resource resource = Mockito.mock(Resource.class);
+        final SlingHttpServletRequest request = Mockito.mock(SlingHttpServletRequest.class);
+        final SlingHttpServletResponse response = Mockito.mock(SlingHttpServletResponse.class);
+        final ResourceMetadata meta = Mockito.mock(ResourceMetadata.class);
+        final ServletContext sc = Mockito.mock(ServletContext.class);
+        final RequestPathInfo requestPathInfo = Mockito.mock(RequestPathInfo.class);
+
+        StreamRenderer streamRendererServlet = new StreamRenderer(true, new String[] { "/" }, sc);
+
+        Mockito.when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
+        Mockito.when(request.getResource()).thenReturn(resource);
+
+        Mockito.when(resource.getResourceMetadata()).thenReturn(meta);
+        List<String[]> headers = new ArrayList<>();
+        headers.add(new String[] { "x-test", "header"});
+
+        Mockito.when(resource.adaptTo(Mockito.eq(RedirectResolver.class))).thenReturn(
+                new RedirectResolverForTesting("https://xyz.blobs.com//container/id",
+                        headers, RedirectResponse.NO_REDIRECT));
+
+        try {
+            streamRendererServlet.render(request, response);
+            Assert.fail();
+        } catch (NullPointerException e) {
+            // after testing for stream render there will be a NPE as this test didnt mock everything else up
+            // other tests verify non redirect behaviour already and the test preceeding this one
+            // verifies redirect works.
+            // Still need to verify that no redirect was set.
+        }
+
+        Mockito.verify(response, Mockito.times(0)).setHeader("x-test", "header");
+        Mockito.verify(response, Mockito.times(0)).setStatus(301);
+        Mockito.verify(response, Mockito.times(0)).sendRedirect("https://xyz.blobs.com//container/id");
+
+    }
+
+
+    // since this is a provider class, I want it to fail to compile if the RedirectResolver changes.
+    protected class RedirectResolverForTesting implements RedirectResolver {
+        private final String redirect;
+        private final List<String[]> headers;
+        private final int status;
+
+        RedirectResolverForTesting(String redirect, List<String[]> headers, int status) {
+            this.redirect = redirect;
+            this.headers = headers;
+            this.status = status;
+        }
+
+        @Override
+        public void resolve(HttpServletRequest request, RedirectResponse redirectResponse) {
+            for (String[] header: headers) {
+                redirectResponse.setHeader(header[0], header[1]);
+            }
+            redirectResponse.setStatus(status);
+            redirectResponse.setRedirect(redirect);
+        }
+    }
+
 }
