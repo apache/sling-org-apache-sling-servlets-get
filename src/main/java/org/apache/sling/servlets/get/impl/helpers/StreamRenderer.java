@@ -28,8 +28,10 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.servlet.RequestDispatcher;
@@ -55,6 +57,8 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.resource.external.ExternalizableInputStream;
 import org.apache.sling.api.servlets.HttpConstants;
 import org.apache.sling.servlets.get.impl.DefaultGetServlet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -780,14 +784,12 @@ public class StreamRenderer implements Renderer {
 
 
     // ------ RedirectResponse used for detecting redirects on binaries.
-    protected class RedirectResponseImpl extends RedirectResponse {
+    protected class RedirectResponseImpl implements RedirectResponse {
         private int status;
         private String redirect = null;
         private List<String[]> headers = new ArrayList<String[]>();
+        private Map<String, Object> attributes = new HashMap<String, Object>();
 
-        public boolean hasResolved() {
-            return redirect != null && this.status != NO_REDIRECT;
-        }
 
         public Iterable<String[]> getHeaders() {
             return headers;
@@ -800,6 +802,22 @@ public class StreamRenderer implements Renderer {
 
         public int getStatus() {
             return this.status;
+        }
+
+        @Override
+        public boolean hasResolved() {
+            return redirect != null && this.status > 100;
+        }
+
+
+        @Override
+        public @Nullable Object getAttribute(@NotNull String key) {
+            return attributes.get(key);
+        }
+
+        @Override
+        public void setAttribute(@NotNull String key, @NotNull Object value) {
+            attributes.put(key, value);
         }
 
         @Override

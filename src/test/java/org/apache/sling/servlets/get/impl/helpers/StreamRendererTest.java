@@ -39,6 +39,7 @@ import org.apache.sling.api.redirect.RedirectResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -203,7 +204,7 @@ public class StreamRendererTest {
 
         Mockito.when(resource.adaptTo(Mockito.eq(RedirectResolver.class))).thenReturn(
                 new RedirectResolverForTesting("https://xyz.blobs.com//container/id",
-                        headers, RedirectResponse.NO_REDIRECT));
+                        headers, -1));
 
         try {
             streamRendererServlet.render(request, response);
@@ -235,7 +236,7 @@ public class StreamRendererTest {
         }
 
         @Override
-        public void resolve(HttpServletRequest request, RedirectResponse redirectResponse) {
+        public void resolve(@NotNull HttpServletRequest request, @NotNull RedirectResponse redirectResponse) {
             for (String[] header: headers) {
                 redirectResponse.setHeader(header[0], header[1]);
             }
