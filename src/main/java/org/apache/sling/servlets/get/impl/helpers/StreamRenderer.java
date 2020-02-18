@@ -788,8 +788,6 @@ public class StreamRenderer implements Renderer {
         private int status;
         private String redirect = null;
         private List<String[]> headers = new ArrayList<String[]>();
-        private Map<String, Object> attributes = new HashMap<String, Object>();
-
 
         public Iterable<String[]> getHeaders() {
             return headers;
@@ -807,17 +805,6 @@ public class StreamRenderer implements Renderer {
         @Override
         public boolean hasResolved() {
             return redirect != null && this.status > 100;
-        }
-
-
-        @Override
-        public @Nullable Object getAttribute(@NotNull String key) {
-            return attributes.get(key);
-        }
-
-        @Override
-        public void setAttribute(@NotNull String key, @NotNull Object value) {
-            attributes.put(key, value);
         }
 
         @Override
