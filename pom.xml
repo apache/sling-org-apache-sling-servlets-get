@@ -22,13 +22,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.sling</groupId>
-        <artifactId>sling</artifactId>
-        <version>32</version>
+        <artifactId>sling-bundle-parent</artifactId>
+        <version>39</version>
         <relativePath />
     </parent>
 
     <artifactId>org.apache.sling.servlets.get</artifactId>
-    <packaging>bundle</packaging>
     <version>2.1.41-SNAPSHOT</version>
 
     <name>Apache Sling Default GET Servlets</name>
@@ -51,21 +50,8 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions> 
-                <configuration>
-                    <instructions>
-                        <Import-Package>
-                            javax.jcr;resolution:=optional,
-                            javax.jcr.version;resolution:=optional,
-                            *
-                        </Import-Package>
-                        <Conditional-Package>
-                            org.apache.jackrabbit.util
-                        </Conditional-Package>
-                    </instructions>
-                </configuration>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -168,23 +154,20 @@
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.johnzon</artifactId>
-            <version>1.0.0</version>
+            <version>1.2.4</version>
             <scope>provided</scope>
         </dependency>
-                <dependency>
+        <dependency>
         	<groupId>org.apache.sling</groupId>
         	<artifactId>org.apache.sling.testing.sling-mock</artifactId>
         	<version>2.2.10</version>
         	<scope>test</scope>
         </dependency>
-                        <dependency>
-                	<groupId>org.apache.sling</groupId>
-                	<artifactId>
-                		org.apache.sling.servlet-helpers
-                	</artifactId>
-                	<version>1.1.6</version>
-                	<type>bundle</type>
-                	<scope>test</scope>
-                </dependency>
+        <dependency>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.servlet-helpers</artifactId>
+            <version>1.1.6</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

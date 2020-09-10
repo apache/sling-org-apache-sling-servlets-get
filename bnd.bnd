@@ -1,0 +1,6 @@
+Import-Package:\
+  javax.jcr;resolution:=optional,\
+  javax.jcr.version;resolution:=optional,\
+  *
+Conditional-Package:\
+  org.apache.jackrabbit.util
