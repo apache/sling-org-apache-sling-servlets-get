@@ -148,6 +148,10 @@ public class StreamRenderer implements Renderer {
             final ValueMap vm = resource.adaptTo(ValueMap.class);
             final String actualResourcePath = vm.get(JcrConstants.JCR_CONTENT, String.class);
             resource = request.getResourceResolver().getResource(actualResourcePath);
+            if (resource == null) {
+                log.warn("Path {} does not exist",actualResourcePath);
+                return;
+            }
         }
 
         try (InputStream stream = resource.adaptTo(InputStream.class)) {
