@@ -149,42 +149,43 @@ public class StreamRenderer implements Renderer {
             final String actualResourcePath = vm.get(JcrConstants.JCR_CONTENT, String.class);
             resource = request.getResourceResolver().getResource(actualResourcePath);
         }
-        InputStream stream = resource.adaptTo(InputStream.class);
-        if (stream != null) {
-            if ( stream instanceof ExternalizableInputStream) {
-                response.sendRedirect(((ExternalizableInputStream)stream).getURI().toString());
-                return;
-            }
-            if (isHeadRequest(request)) {
-                setContentLength(response, resource.getResourceMetadata().getContentLength());
-                setHeaders(resource, response);
-                return;
-            }
 
-            streamResource(resource, stream, included, request, response);
-
-        } else {
-
-            // the resource is the root, do not redirect, immediately index
-            if (isRootResourceRequest(resource)) {
-
-                renderDirectory(request, response, included);
-
-            } else if (included || response.isCommitted() ) {
-
-                // request is included or committed, not redirecting
-                request.getRequestProgressTracker().log(
-                    "StreamRendererServlet: Not redirecting with trailing slash, response is committed or request included");
-                log.warn("StreamRendererServlet: Not redirecting with trailing slash, response is committed or request included");
+        try (InputStream stream = resource.adaptTo(InputStream.class)) {
+            if (stream != null) {
+                if ( stream instanceof ExternalizableInputStream) {
+                    response.sendRedirect(((ExternalizableInputStream)stream).getURI().toString());
+                    return;
+                }
+                if (isHeadRequest(request)) {
+                    setContentLength(response, resource.getResourceMetadata().getContentLength());
+                    setHeaders(resource, response);
+                    return;
+                }
+                streamResource(resource, stream, included, request, response);
 
             } else {
 
-                // redirect to this with trailing slash to render the index
-                String url = request.getResourceResolver().map(request,
-                    resource.getPath())
-                    + "/";
-                response.sendRedirect(url);
+                // the resource is the root, do not redirect, immediately index
+                if (isRootResourceRequest(resource)) {
 
+                    renderDirectory(request, response, included);
+
+                } else if (included || response.isCommitted() ) {
+
+                    // request is included or committed, not redirecting
+                    request.getRequestProgressTracker().log(
+                        "StreamRendererServlet: Not redirecting with trailing slash, response is committed or request included");
+                    log.warn("StreamRendererServlet: Not redirecting with trailing slash, response is committed or request included");
+
+                } else {
+
+                    // redirect to this with trailing slash to render the index
+                    String url = request.getResourceResolver().map(request,
+                        resource.getPath())
+                        + "/";
+                    response.sendRedirect(url);
+
+                }
             }
         }
     }
@@ -225,60 +226,55 @@ public class StreamRenderer implements Renderer {
             final SlingHttpServletRequest request,
             final SlingHttpServletResponse response) throws IOException {
         // finally stream the resource
-        try {
 
-            final ArrayList<Range> ranges;
-            if (included) {
-                // no range support on included requests
-                ranges = FULL;
+        final ArrayList<Range> ranges;
+        if (included) {
+            // no range support on included requests
+            ranges = FULL;
 
-            } else {
-                // parse optional ranges
-                ranges = parseRange(request, response,
+        } else {
+            // parse optional ranges
+            ranges = parseRange(request, response,
                     resource.getResourceMetadata());
-                if (ranges == null) {
-                    // there was something wrong, the parseRange has sent a
-                    // response and we are done
-                    return;
-                }
-
-                // set various response headers, unless the request is included
-                setHeaders(resource, response);
+            if (ranges == null) {
+                // there was something wrong, the parseRange has sent a
+                // response and we are done
+                return;
             }
 
-            ServletOutputStream out = response.getOutputStream();
+            // set various response headers, unless the request is included
+            setHeaders(resource, response);
+        }
 
-            if (ranges == FULL) {
-                // return full resource
-                setContentLength(response,
+        ServletOutputStream out = response.getOutputStream();
+
+        if (ranges == FULL) {
+            // return full resource
+            setContentLength(response,
                     resource.getResourceMetadata().getContentLength());
-                byte[] buf = new byte[IO_BUFFER_SIZE];
-                int rd;
-                while ((rd = stream.read(buf)) >= 0) {
-                    out.write(buf, 0, rd);
-                }
-            } else {
-                // return ranges of the resource
-                response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+            byte[] buf = new byte[IO_BUFFER_SIZE];
+            int rd;
+            while ((rd = stream.read(buf)) >= 0) {
+                out.write(buf, 0, rd);
+            }
+        } else {
+            // return ranges of the resource
+            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
 
-                if (ranges.size() == 1) {
-                    Range range = ranges.get(0);
-                    response.addHeader("Content-Range", "bytes " + range.start
+            if (ranges.size() == 1) {
+                Range range = ranges.get(0);
+                response.addHeader("Content-Range", "bytes " + range.start
                         + "-" + range.end + "/" + range.length);
-                    setContentLength(response, range.end - range.start + 1);
-                    copy(stream, out, range);
-                } else {
+                setContentLength(response, range.end - range.start + 1);
+                copy(stream, out, range);
+            } else {
 
-                    response.setContentType("multipart/byteranges; boundary="
+                response.setContentType("multipart/byteranges; boundary="
                         + mimeSeparation);
 
-                    copy(resource, out, ranges.iterator());
-                }
-
+                copy(resource, out, ranges.iterator());
             }
 
-        } finally {
-            closeSilently(stream);
         }
     }
 
@@ -449,11 +445,12 @@ public class StreamRenderer implements Renderer {
 
         String name = ResourceUtil.getName(resource.getPath());
 
-        InputStream ins = resource.adaptTo(InputStream.class);
-        if (ins == null) {
-            name += "/";
-        } else {
-            closeSilently(ins);
+        try (InputStream ins = resource.adaptTo(InputStream.class)) {
+            if (ins == null) {
+                name += "/";
+            }
+        } catch (IOException e) {
+            // ignore
         }
 
         String displayName = name;
@@ -505,10 +502,9 @@ public class StreamRenderer implements Renderer {
         while ((exception == null) && (ranges.hasNext())) {
 
             InputStream resourceInputStream = resource.adaptTo(InputStream.class);
-            InputStream istream = new BufferedInputStream(resourceInputStream,
-                IO_BUFFER_SIZE);
 
-            try {
+            try (InputStream istream = new BufferedInputStream(resourceInputStream,
+                    IO_BUFFER_SIZE)) {
                 Range currentRange = ranges.next();
 
                 // Writing MIME header.
@@ -527,10 +523,7 @@ public class StreamRenderer implements Renderer {
                 } catch(IOException e) {
                     exception = e;
                 }
-            } finally {
-                closeSilently(istream);
-            }
-
+            } 
         }
 
         ostream.println();
@@ -723,15 +716,6 @@ public class StreamRenderer implements Renderer {
             rangeHeader);
         response.addHeader("Content-Range", "bytes */" + fileLength);
         response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
-    }
-
-    private void closeSilently(final Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (IOException ignore) {
-            }
-        }
     }
 
     // --------- Range Inner Class
