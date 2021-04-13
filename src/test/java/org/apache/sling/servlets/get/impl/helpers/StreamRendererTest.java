@@ -58,7 +58,7 @@ public class StreamRendererTest {
     @Before
     public void setup() {
         Resource r = context.create().resource("/abc.txt","prop","value");
-        context.build().file("file.txt", this.getClass().getResourceAsStream("/samplefile.txt"));
+        context.build().file("file.txt", this.getClass().getResourceAsStream("/samplefile.json"));
         requestDispatcher = Mockito.mock(RequestDispatcher.class);
         context.request().setRequestDispatcherFactory(new MockRequestDispatcherFactory() {
             @Override
@@ -186,7 +186,7 @@ public class StreamRendererTest {
         StreamRenderer renderer = new StreamRenderer(true,null,null);
         context.request().setResource(context.resourceResolver().getResource("/file.txt"));
         renderer.render(context.request(), context.response());
-        assertTrue(context.response().getOutputAsString().equals("random content"));
+        assertTrue(context.response().getOutputAsString().equals("not json"));
         assertEquals(HttpServletResponse.SC_OK, context.response().getStatus());
 
     }
