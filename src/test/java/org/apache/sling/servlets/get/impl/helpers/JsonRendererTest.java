@@ -99,6 +99,42 @@ public class JsonRendererTest {
         assertTrue(jrs.isTidy(request));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testRecursionLevelNumeric() {
+        context.requestPathInfo().setSelectorString("᭙");
+        jrs.getMaxRecursionLevel(request);
+    }
+
+    @Test
+    public void testRecursionLevelOverflow() {
+        context.requestPathInfo().setSelectorString(Long.toString(((long) Integer.MAX_VALUE)  + 1L));
+        assertEquals(-1, jrs.getMaxRecursionLevel(request));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRecursionLevelUnderflow() {
+        context.requestPathInfo().setSelectorString(Long.toString(((long) Integer.MIN_VALUE)  - 1L));
+        jrs.getMaxRecursionLevel(request);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRecursionLevelNegativ() {
+        context.requestPathInfo().setSelectorString(Long.toString( - 2L));
+        jrs.getMaxRecursionLevel(request);
+    }
+
+    @Test
+    public void testRecursionLevelInfinity() {
+        context.requestPathInfo().setSelectorString("infinity");
+        assertEquals(-1, jrs.getMaxRecursionLevel(request));
+    }
+
+    @Test
+    public void testRecursionLevelInfinityNumeric() {
+        context.requestPathInfo().setSelectorString("-1");
+        assertEquals(-1, jrs.getMaxRecursionLevel(request));
+    }
+
     @Test
     public void testBadRequest() throws IOException {
         context.requestPathInfo().setSelectorString("bad.selectors");

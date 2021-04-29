@@ -18,12 +18,12 @@ package org.apache.sling.servlets.get.impl.helpers;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.math.BigInteger;
 
 import javax.json.Json;
 import javax.json.stream.JsonGenerator;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -160,19 +160,37 @@ public class JsonRenderer implements Renderer {
                     maxRecursionLevels = -1;
                 } else {
                     try {
-                        maxRecursionLevels = Integer.parseInt(level);
+                        maxRecursionLevels = parseRecursionLevel(level);
+                    } catch (ArithmeticException ae) {
+                        maxRecursionLevels = -1;
                     } catch (NumberFormatException nfe) {
-                        //SLING-2324
-                        if (StringUtils.isNumeric(level)){
-                            maxRecursionLevels = -1;
-                        } else {
-                            throw new IllegalArgumentException("Invalid recursion selector value '" + level + "'");
-                        }
+                        throw new IllegalArgumentException("Invalid recursion selector value '" + level + "'");
                     }
                 }
             }
         }
         return maxRecursionLevels;
+    }
+
+    /**
+     * parse the int value from an input string but only when the input is a real number and >= -1 i.e., [0-9]+ | -1
+     * @param input
+     * @return the value of the number as an int
+     * @throws ArithmeticException - if the input was a real positive number but didn't fit into an int
+     * @throws IllegalArgumentException - if the input was not a real number or out of bounds
+     */
+    private int parseRecursionLevel(String input) throws ArithmeticException, IllegalArgumentException {
+        if ("-1".equals(input)) {
+            return -1;
+        }
+        BigInteger inputNumber = new BigInteger(input);
+        if (!inputNumber.toString().equals(input)) {
+            throw new NumberFormatException("Not a real number string");
+        }
+        if (inputNumber.signum() == -1) {
+            throw new NumberFormatException("Not a valid negative number");
+        }
+        return inputNumber.intValueExact();
     }
 
     /**
