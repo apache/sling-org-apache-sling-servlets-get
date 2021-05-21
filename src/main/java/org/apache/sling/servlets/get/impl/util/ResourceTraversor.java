@@ -55,8 +55,6 @@ public class ResourceTraversor
      * @param levels recursion levels limit, -1 means no limit
      * @param maxResources maximum number of resources to collect, ignored if levels == 1
      * @param resource the root resource to traverse
-     * @param tidy not used
-     * @throws JSONException
      */
     public ResourceTraversor(final int levels, final long maxResources, final Resource resource, boolean ecmaSupport) {
         this.maxResources = maxResources;
@@ -76,7 +74,7 @@ public class ResourceTraversor
      *
      * @return -1 if everything went fine, a positive value when the resource
      *            has more child nodes then allowed.
-     * @throws JSONException
+     * @throws RecursionTooDeepException
      */
     public int collectResources() throws RecursionTooDeepException {
         return collectChildren(startResource, 0);
