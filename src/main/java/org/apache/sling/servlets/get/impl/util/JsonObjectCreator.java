@@ -242,7 +242,7 @@ public class JsonObjectCreator {
         } catch (IOException ignore) {
         }
         if (index == -1) {
-            return valueMap.get(key, Long.class);
+            return valueMap.get(key, index);
         }
         final Long[] lengths = valueMap.get(key, Long[].class);
         if (lengths != null && lengths.length > index) {
