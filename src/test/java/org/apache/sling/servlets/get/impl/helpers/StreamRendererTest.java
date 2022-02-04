@@ -19,6 +19,7 @@
 package org.apache.sling.servlets.get.impl.helpers;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -26,15 +27,51 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
+
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
-import junitx.util.PrivateAccessor;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
+import org.apache.sling.servlethelpers.MockRequestDispatcherFactory;
+import org.apache.sling.testing.mock.sling.ResourceResolverType;
+import org.apache.sling.testing.mock.sling.junit.SlingContext;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import junitx.util.PrivateAccessor;
+
 public class StreamRendererTest {
+
+    @Rule
+    public SlingContext context = new SlingContext(ResourceResolverType.JCR_OAK);
+
+    RequestDispatcher requestDispatcher;
+
+
+    @Before
+    public void setup() {
+        Resource r = context.create().resource("/abc.txt","prop","value");
+        context.build().file("file.txt", this.getClass().getResourceAsStream("/samplefile.json"));
+        requestDispatcher = Mockito.mock(RequestDispatcher.class);
+        context.request().setRequestDispatcherFactory(new MockRequestDispatcherFactory() {
+            @Override
+            public RequestDispatcher getRequestDispatcher(String path, RequestDispatcherOptions options) {
+                return requestDispatcher;
+            }
+
+            @Override
+            public RequestDispatcher getRequestDispatcher(Resource resource, RequestDispatcherOptions options) {
+                return requestDispatcher;
+            }
+        });
+    }
 
     @Test
     public void testCopyRange() throws IOException {
@@ -141,4 +178,30 @@ public class StreamRendererTest {
                 new Class[] { Resource.class, SlingHttpServletResponse.class }, new Object[] { resource, response });
         Mockito.verify(response, Mockito.times(1)).setContentType("application/octet-stream");
     }
+
+
+    @Test
+    public void test_render_file() throws IOException {
+
+        StreamRenderer renderer = new StreamRenderer(true,null,null);
+        context.request().setResource(context.resourceResolver().getResource("/file.txt"));
+        renderer.render(context.request(), context.response());
+        assertTrue(context.response().getOutputAsString().equals("not json"));
+        assertEquals(HttpServletResponse.SC_OK, context.response().getStatus());
+
+    }
+
+    @Test
+    public void test_render_file_directoryListing() throws IOException, ServletException {
+        ServletContext sc = Mockito.mock(ServletContext.class);
+        StreamRenderer renderer = new StreamRenderer(true,new String[] {"/"},sc);
+        Resource root = context.resourceResolver().getResource("/");
+        context.request().setResource(root);
+        renderer.render(context.request(), context.response());
+        assertEquals(HttpServletResponse.SC_OK, context.response().getStatus());
+        Mockito.verify(requestDispatcher).include(Mockito.any(), Mockito.any());
+
+    }
+
+
 }
