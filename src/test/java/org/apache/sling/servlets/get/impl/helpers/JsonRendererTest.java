@@ -36,6 +36,7 @@ import org.apache.sling.testing.mock.sling.servlet.MockSlingHttpServletResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 public class JsonRendererTest {
 
@@ -182,7 +183,7 @@ public class JsonRendererTest {
     public void testBooleansNoTidy() throws IOException {
         context.currentResource("/content/booleans");
         final String expected = "{\"b2\":false,\"jcr:primaryType\":\"nt:unstructured\",\"s1\":\"true\",\"b1\":true,\"s2\":\"false\"}";
-        assertEquals(expected, getJsonFromRequestResponse());
+        JSONAssert.assertEquals(expected, getJsonFromRequestResponse());
     }
 
     @Test
@@ -197,7 +198,7 @@ public class JsonRendererTest {
             "  \"b1\": true,\n" +
             "  \"s2\": \"false\"\n" +
             "  }";
-        assertEquals(expected, getJsonFromRequestResponse());
+        JSONAssert.assertEquals(expected, getJsonFromRequestResponse());
     }
 
     private JsonObject getJsonFromReader() throws IOException {
