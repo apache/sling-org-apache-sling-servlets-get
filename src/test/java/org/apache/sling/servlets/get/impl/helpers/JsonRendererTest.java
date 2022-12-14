@@ -26,7 +26,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Calendar;
 
-import javax.json.*;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonPatch;
+import javax.json.JsonReader;
 
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
@@ -35,7 +38,6 @@ import org.apache.sling.testing.mock.sling.servlet.MockSlingHttpServletResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 public class JsonRendererTest {
 
