@@ -185,14 +185,12 @@ public class JsonRendererTest {
         context.currentResource("/content/booleans");
         final String expected = "{\"b2\":false,\"jcr:primaryType\":\"nt:unstructured\",\"s1\":\"true\",\"b1\":true,\"s2\":\"false\"}";
         JsonPatch diff;
-        try{
-            JsonReader jsonReader = Json.createReader(new StringReader(expected));
+        try(JsonReader jsonReader = Json.createReader(new StringReader(expected));
+            JsonReader jsonReader1 = Json.createReader(new StringReader(getJsonFromRequestResponse()));
+        ){
             JsonObject expectedObject = jsonReader.readObject();
-            jsonReader = Json.createReader(new StringReader(getJsonFromRequestResponse()));
-            JsonObject targetObject = jsonReader.readObject();
+            JsonObject targetObject = jsonReader1.readObject();
             diff = Json.createDiff(expectedObject, targetObject);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         assertEquals("[]", diff.toString());
     }
@@ -210,14 +208,12 @@ public class JsonRendererTest {
             "  \"s2\": \"false\"\n" +
             "  }";
         JsonPatch diff;
-        try{
-            JsonReader jsonReader = Json.createReader(new StringReader(expected));
+        try(JsonReader jsonReader = Json.createReader(new StringReader(expected));
+            JsonReader jsonReader1 = Json.createReader(new StringReader(getJsonFromRequestResponse()));
+        ){
             JsonObject expectedObject = jsonReader.readObject();
-            jsonReader = Json.createReader(new StringReader(getJsonFromRequestResponse()));
-            JsonObject targetObject = jsonReader.readObject();
+            JsonObject targetObject = jsonReader1.readObject();
             diff = Json.createDiff(expectedObject, targetObject);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         assertEquals("[]", diff.toString());
     }
