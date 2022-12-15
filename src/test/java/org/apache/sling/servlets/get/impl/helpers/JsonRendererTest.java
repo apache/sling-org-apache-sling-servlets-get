@@ -217,7 +217,7 @@ public class JsonRendererTest {
             JsonObject targetObject = jsonReader.readObject();
             diff = Json.createDiff(expectedObject, targetObject);
         } catch (IOException e) {
-            throw new RuntimeExsception(e);
+            throw new RuntimeException(e);
         }
         assertEquals("[]", diff.toString());
     }
