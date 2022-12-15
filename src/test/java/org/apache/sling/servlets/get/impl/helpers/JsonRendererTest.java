@@ -28,6 +28,8 @@ import java.util.Calendar;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonPatch;
+import javax.json.JsonReader;
 
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
@@ -182,7 +184,15 @@ public class JsonRendererTest {
     public void testBooleansNoTidy() throws IOException {
         context.currentResource("/content/booleans");
         final String expected = "{\"b2\":false,\"jcr:primaryType\":\"nt:unstructured\",\"s1\":\"true\",\"b1\":true,\"s2\":\"false\"}";
-        assertEquals(expected, getJsonFromRequestResponse());
+        JsonPatch diff;
+        try(JsonReader jsonReader = Json.createReader(new StringReader(expected));
+            JsonReader jsonReader1 = Json.createReader(new StringReader(getJsonFromRequestResponse()));
+        ){
+            JsonObject expectedObject = jsonReader.readObject();
+            JsonObject targetObject = jsonReader1.readObject();
+            diff = Json.createDiff(expectedObject, targetObject);
+        }
+        assertEquals("[]", diff.toString());
     }
 
     @Test
@@ -197,7 +207,15 @@ public class JsonRendererTest {
             "  \"b1\": true,\n" +
             "  \"s2\": \"false\"\n" +
             "  }";
-        assertEquals(expected, getJsonFromRequestResponse());
+        JsonPatch diff;
+        try(JsonReader jsonReader = Json.createReader(new StringReader(expected));
+            JsonReader jsonReader1 = Json.createReader(new StringReader(getJsonFromRequestResponse()));
+        ){
+            JsonObject expectedObject = jsonReader.readObject();
+            JsonObject targetObject = jsonReader1.readObject();
+            diff = Json.createDiff(expectedObject, targetObject);
+        }
+        assertEquals("[]", diff.toString());
     }
 
     private JsonObject getJsonFromReader() throws IOException {
