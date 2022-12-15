@@ -184,11 +184,16 @@ public class JsonRendererTest {
     public void testBooleansNoTidy() throws IOException {
         context.currentResource("/content/booleans");
         final String expected = "{\"b2\":false,\"jcr:primaryType\":\"nt:unstructured\",\"s1\":\"true\",\"b1\":true,\"s2\":\"false\"}";
-        JsonReader jsonReader = Json.createReader(new StringReader(expected));
-        JsonObject expectedObject = jsonReader.readObject();
-        jsonReader = Json.createReader(new StringReader(getJsonFromRequestResponse()));
-        JsonObject targetObject = jsonReader.readObject();
-        JsonPatch diff = Json.createDiff(expectedObject, targetObject);
+        JsonPatch diff;
+        try{
+            JsonReader jsonReader = Json.createReader(new StringReader(expected));
+            JsonObject expectedObject = jsonReader.readObject();
+            jsonReader = Json.createReader(new StringReader(getJsonFromRequestResponse()));
+            JsonObject targetObject = jsonReader.readObject();
+            diff = Json.createDiff(expectedObject, targetObject);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertEquals("[]", diff.toString());
     }
 
@@ -204,11 +209,16 @@ public class JsonRendererTest {
             "  \"b1\": true,\n" +
             "  \"s2\": \"false\"\n" +
             "  }";
-        JsonReader jsonReader = Json.createReader(new StringReader(expected));
-        JsonObject expectedObject = jsonReader.readObject();
-        jsonReader = Json.createReader(new StringReader(getJsonFromRequestResponse()));
-        JsonObject targetObject = jsonReader.readObject();
-        JsonPatch diff = Json.createDiff(expectedObject, targetObject);
+        JsonPatch diff;
+        try{
+            JsonReader jsonReader = Json.createReader(new StringReader(expected));
+            JsonObject expectedObject = jsonReader.readObject();
+            jsonReader = Json.createReader(new StringReader(getJsonFromRequestResponse()));
+            JsonObject targetObject = jsonReader.readObject();
+            diff = Json.createDiff(expectedObject, targetObject);
+        } catch (IOException e) {
+            throw new RuntimeExsception(e);
+        }
         assertEquals("[]", diff.toString());
     }
 
