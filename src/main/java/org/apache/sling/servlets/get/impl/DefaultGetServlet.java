@@ -78,7 +78,8 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
         @AttributeDefinition(name = "Extension Aliases",
                 description="The aliases can be used to map several extensions to a " +
-                            "single servlet. For instance \"xml:pdf,rtf\" maps the extensions \".pdf\" and " +
+                            "single servlet. This works irrespective if the renderer for the target extension is enabled or not. " +
+                            "For instance \"xml:pdf,rtf\" maps the extensions \".pdf\" and " +
                             "\".rtf\" to the servlet helper handling the \".xml\" extension.")
         String[] aliases();
 
@@ -107,19 +108,19 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         String[] index_files() default { "index","index.html" };
 
         @AttributeDefinition(name = "Enable HTML",
-                description = "Whether the renderer for HTML of the default GET servlet is enabled or not. By default the HTML renderer is enabled.")
+                description = "Whether the renderer for HTML of the default GET servlet is enabled for extension \"html\" or not.")
         boolean enable_html() default true;
 
         @AttributeDefinition(name = "Enable JSON",
-                description = "Whether the renderer for JSON of the default GET servlet is enabled or not. By default the JSON renderer is enabled.")
+                description = "Whether the renderer for JSON of the default GET servlet is enabled for extension \"json\" or not.")
         boolean enable_json() default true;
 
         @AttributeDefinition(name = "Enable Plain Text",
-                description = "Whether the renderer for plain text of the default GET servlet is enabled or not. By default the plain text renderer is enabled.")
+                description = "Whether the renderer for plain text of the default GET servlet is enabled for extension \"txt\" or not.")
         boolean enable_txt() default true;
 
         @AttributeDefinition(name = "Enable XML",
-                description = "Whether the renderer for XML of the default GET servlet is enabled or not. By default the XML renderer is enabled.")
+                description = "Whether the renderer for XML of the default GET servlet is enabled for extension \"xml\" or not.")
         boolean enable_xml() default true;
 
         @AttributeDefinition(name = "JSON Max results",
