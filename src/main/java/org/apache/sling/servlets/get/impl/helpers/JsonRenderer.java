@@ -63,9 +63,12 @@ public class JsonRenderer implements Renderer {
 
 	private boolean ecmaSupport;
 
-    public JsonRenderer(long maximumResults, boolean ecmaSupport) {
+    private boolean exportBinaryData;
+
+    public JsonRenderer(long maximumResults, boolean ecmaSupport, boolean exportBinaryData) {
         this.maximumResults = maximumResults;
         this.ecmaSupport = ecmaSupport;
+        this.exportBinaryData = exportBinaryData;
     }
 
     public void render(SlingHttpServletRequest req,
@@ -94,7 +97,7 @@ public class JsonRenderer implements Renderer {
         final boolean harray = hasSelector(req, HARRAY);
         ResourceTraversor traversor = null;
         try {
-            traversor = new ResourceTraversor(maxRecursionLevels, maximumResults, r, ecmaSupport);
+            traversor = new ResourceTraversor(maxRecursionLevels, maximumResults, r, ecmaSupport, exportBinaryData);
             allowedLevel = traversor.collectResources();
             if ( allowedLevel != -1 ) {
                 allowDump = false;

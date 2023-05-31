@@ -132,6 +132,12 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         
         @AttributeDefinition(name = "Legacy ECMA date format", description="Enable legacy Sling ECMA format for dates")
         boolean ecmaSuport() default true;
+
+        @AttributeDefinition(name = "Export binary data in JSON",
+                description="Whether to export binary data in base64. " +
+                  "By default exporting binary properties is disabled and the JSON renderer prints the length of the data."
+        )
+        boolean export_binary_data() default false;
     }
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -161,7 +167,9 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
     private XSSAPI xssApi;
 
 	private boolean enableEcmaSupport;
-    
+
+    private boolean exportBinaryData;
+
     public static final String EXT_HTML = "html";
 
     public static final String EXT_TXT = "txt";
@@ -190,6 +198,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         if (enableEcmaSupport) {
             logger.info("Legacy ECMA format is enabled");
         }
+        this.exportBinaryData = cfg.export_binary_data();
     }
 
     @Deactivate
@@ -208,7 +217,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         } else if ( EXT_TXT.equals(type) ) {
             renderer = new PlainTextRenderer();
         } else if (EXT_JSON.equals(type) ) {
-            renderer = new JsonRenderer(jsonMaximumResults, enableEcmaSupport);
+            renderer = new JsonRenderer(jsonMaximumResults, enableEcmaSupport, exportBinaryData);
         } else if ( EXT_XML.equals(type) ) {
             renderer = new XMLRenderer();
         }

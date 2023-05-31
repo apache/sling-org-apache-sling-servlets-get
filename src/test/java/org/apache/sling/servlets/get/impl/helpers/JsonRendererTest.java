@@ -57,7 +57,7 @@ public class JsonRendererTest {
 
         context.currentResource("/content");
 
-        jrs = new JsonRenderer(42, false);
+        jrs = new JsonRenderer(42, false, false);
     }
 
     @Test
@@ -158,7 +158,7 @@ public class JsonRendererTest {
     @Test
     public void testECMA() throws IOException {
         context.requestPathInfo().setSelectorString("1");
-        JsonRenderer ecmajrs = new JsonRenderer(42, true);
+        JsonRenderer ecmajrs = new JsonRenderer(42, true, false);
         ecmajrs.render(request, response);
         String out = response.getOutputAsString();
         JsonObject job = Json.createReader(new StringReader(out)).readObject();
@@ -226,7 +226,7 @@ public class JsonRendererTest {
     }
 
     private String getJsonFromRequestResponse() throws IOException {
-        final JsonRenderer renderer = new JsonRenderer(1000, true);
+        final JsonRenderer renderer = new JsonRenderer(1000, true, false);
         renderer.render(request, response);
         return response.getOutputAsString();
     }

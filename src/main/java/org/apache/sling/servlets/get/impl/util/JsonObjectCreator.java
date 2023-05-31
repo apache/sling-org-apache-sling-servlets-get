@@ -30,12 +30,16 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import javax.jcr.RepositoryException;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
 
 import org.apache.jackrabbit.util.ISO8601;
+import org.apache.jackrabbit.value.BinaryValue;
+import org.apache.jackrabbit.value.ValueHelper;
+import org.apache.sling.api.SlingException;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 
@@ -53,15 +57,18 @@ public class JsonObjectCreator {
 
     private boolean ecmaSupport;
 
+    boolean exportBinaryData;
+
     /**
      * Create a new json object creator
      * @param resource The source
      * @param ecmaSupport ECMA date format for Calendar
      */
-    public JsonObjectCreator(Resource resource, boolean ecmaSupport) {
+    public JsonObjectCreator(Resource resource, boolean ecmaSupport, boolean exportBinaryData) {
         this.resource = resource;
         this.valueMap = resource.getValueMap();
         this.ecmaSupport = ecmaSupport;
+        this.exportBinaryData = exportBinaryData;
     }
 
     /**
@@ -218,11 +225,31 @@ public class JsonObjectCreator {
             // (colon is not allowed as a JCR property name)
             // in the name, and the value should be the size of the binary data
             if (values == null) {
-                obj.add(":" + key, getLength(-1, key, (InputStream) value));
+                if(exportBinaryData){
+                    try {
+                        // Use the same code that Jackrabbit uses to export binary data in JCR XML
+                        String attribute = ValueHelper.serialize(new BinaryValue((InputStream) value), false);
+                        obj.add(":" + key, attribute);
+                    } catch (RepositoryException e) {
+                        throw new SlingException("Failed to encode " + key + " to base64", e);
+                    }
+                 } else {
+                    obj.add(":" + key, getLength(-1, key, (InputStream) value));
+                }
             } else {
                 final JsonArrayBuilder result = Json.createArrayBuilder();
                 for (int i = 0; i < values.length; i++) {
-                    result.add(getLength(i, key, (InputStream) values[i]));
+                    if(exportBinaryData){
+                        try {
+                            // Use the same code that Jackrabbit uses to export binary data in JCR XML
+                            String attribute = ValueHelper.serialize(new BinaryValue((InputStream) values[i]), false);
+                            obj.add(":" + key, attribute);
+                        } catch (RepositoryException e) {
+                            throw new SlingException("Failed to encode " + key + " to base64", e);
+                        }
+                    } else {
+                        result.add(getLength(i, key, (InputStream) values[i]));
+                    }
                 }
                 obj.add(":" + key, result);
             }

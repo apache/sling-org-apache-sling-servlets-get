@@ -82,7 +82,7 @@ public class JsonRendererServletTest {
         request.setResource(resolver.getResource(path));
 
         MockSlingHttpServletResponse response = new MockSlingHttpServletResponse();
-        JsonRenderer renderer = new JsonRenderer(1000, true);
+        JsonRenderer renderer = new JsonRenderer(1000, true, false);
         renderer.render(request, response);
         return response.getOutput().toString();
     }

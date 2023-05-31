@@ -41,7 +41,7 @@ public class JsonObjectCreatorTest {
         values.put("v", value);
         Mockito.when(rsrc.getValueMap()).thenReturn(new ValueMapDecorator(values));
 
-        final JsonObjectCreator joc = new JsonObjectCreator(rsrc, false);
+        final JsonObjectCreator joc = new JsonObjectCreator(rsrc, false, false);
 
         return joc.create().build().get("v");
     }
