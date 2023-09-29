@@ -38,12 +38,9 @@ import org.apache.sling.servlets.get.impl.helpers.PlainTextRenderer;
 import org.apache.sling.servlets.get.impl.helpers.Renderer;
 import org.apache.sling.servlets.get.impl.helpers.StreamRenderer;
 import org.apache.sling.servlets.get.impl.helpers.XMLRenderer;
-import org.apache.sling.xss.XSSAPI;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -157,9 +154,6 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
 
     private boolean enableXml;
 
-    @Reference(policyOption = ReferencePolicyOption.GREEDY)
-    private XSSAPI xssApi;
-
 	private boolean enableEcmaSupport;
     
     public static final String EXT_HTML = "html";
@@ -204,7 +198,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         if ( EXT_RES.equals(type) ) {
             renderer = new StreamRenderer(index, indexFiles, getServletContext());
         } else if ( EXT_HTML.equals(type) ) {
-            renderer = new HtmlRenderer(xssApi);
+            renderer = HtmlRenderer.INSTANCE;
         } else if ( EXT_TXT.equals(type) ) {
             renderer = new PlainTextRenderer();
         } else if (EXT_JSON.equals(type) ) {

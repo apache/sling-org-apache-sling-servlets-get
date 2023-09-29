@@ -18,6 +18,8 @@
  */
 package org.apache.sling.servlets.get.impl.helpers;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -30,7 +32,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.xss.XSSAPI;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -39,6 +40,8 @@ public class HtmlRendererTest {
 
     private SlingHttpServletRequest request;
     private SlingHttpServletResponse response;
+
+    private StringWriter writer;
 
     @Before
     public void setup() throws IOException {
@@ -57,15 +60,16 @@ public class HtmlRendererTest {
 
         response = Mockito.mock(SlingHttpServletResponse.class);
 
-        Mockito.when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+        this.writer = new StringWriter();
+        Mockito.when(response.getWriter()).thenReturn(new PrintWriter(this.writer));
     }
 
     @Test
     public void testEscaping() throws ServletException, IOException {
-        XSSAPI xss = Mockito.mock(XSSAPI.class);
+        HtmlRenderer.INSTANCE.render(request, response);
 
-        new HtmlRenderer(xss).render(request, response);
-
-        Mockito.verify(xss).encodeForHTML("<script>alert(1);</script>");
+        this.writer.flush();
+        final String contents = this.writer.toString();
+        assertTrue(contents.contains("&lt;script&gt;alert(1);&lt;/script&gt;"));
     }
 }

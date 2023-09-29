@@ -21,7 +21,6 @@ import static org.apache.sling.api.servlets.HttpConstants.HEADER_IF_MODIFIED_SIN
 import static org.apache.sling.api.servlets.HttpConstants.HEADER_LAST_MODIFIED;
 
 import java.io.BufferedInputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

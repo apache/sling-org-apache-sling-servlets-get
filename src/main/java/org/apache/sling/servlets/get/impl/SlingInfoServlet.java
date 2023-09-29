@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.json.Json;
-import javax.json.JsonException;
 import javax.json.stream.JsonGenerator;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServletResponse;

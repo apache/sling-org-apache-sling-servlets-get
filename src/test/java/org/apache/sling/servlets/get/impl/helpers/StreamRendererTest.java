@@ -57,7 +57,7 @@ public class StreamRendererTest {
 
     @Before
     public void setup() {
-        Resource r = context.create().resource("/abc.txt","prop","value");
+        context.create().resource("/abc.txt","prop","value");
         context.build().file("file.txt", this.getClass().getResourceAsStream("/samplefile.json"));
         requestDispatcher = Mockito.mock(RequestDispatcher.class);
         context.request().setRequestDispatcherFactory(new MockRequestDispatcherFactory() {

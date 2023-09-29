@@ -28,7 +28,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
-import org.apache.sling.xss.XSSAPI;
+import org.owasp.encoder.Encode;
 
 /**
  * The <code>HtmlRendererServlet</code> renders the current resource in HTML
@@ -36,12 +36,7 @@ import org.apache.sling.xss.XSSAPI;
  */
 public class HtmlRenderer implements Renderer  {
 
-    private final XSSAPI xssApi;
-
-    public HtmlRenderer(final XSSAPI xssApi) {
-        this.xssApi = xssApi;
-    }
-
+    public static final HtmlRenderer INSTANCE = new HtmlRenderer();
 
     public void render(final SlingHttpServletRequest req,
             final SlingHttpServletResponse resp) throws IOException {
@@ -101,19 +96,19 @@ public class HtmlRenderer implements Renderer  {
 
     private void printResourceInfo(final PrintWriter pw, final Resource r) {
         pw.print("<h1>Resource dumped by ");
-        pw.print(xssApi.encodeForHTML(getClass().getSimpleName()));
+        pw.print(Encode.forHtmlContent(getClass().getSimpleName()));
         pw.println("</h1>");
 
         pw.print("<p>Resource path: <b>");
-        pw.print(xssApi.encodeForHTML(r.getPath()));
+        pw.print(Encode.forHtmlContent(r.getPath()));
         pw.println("</b></p>");
 
         pw.print("<p>Resource metadata: <b>");
-        pw.print(xssApi.encodeForHTML(String.valueOf(r.getResourceMetadata())));
+        pw.print(Encode.forHtmlContent(String.valueOf(r.getResourceMetadata())));
         pw.println("</b></p>");
 
         pw.print("<p>Resource type: <b>");
-        pw.print(xssApi.encodeForHTML(r.getResourceType()));
+        pw.print(Encode.forHtmlContent(r.getResourceType()));
         pw.println("</b></p>");
 
         String resourceSuperType = r.getResourceResolver().getParentResourceType(r);
@@ -121,7 +116,7 @@ public class HtmlRenderer implements Renderer  {
             resourceSuperType = "-";
         }
         pw.print("<p>Resource super type: <b>");
-        pw.print(xssApi.encodeForHTML(resourceSuperType));
+        pw.print(Encode.forHtmlContent(resourceSuperType));
         pw.println("</b></p>");
     }
 
@@ -148,7 +143,7 @@ public class HtmlRenderer implements Renderer  {
 
     private void printPropertyValue(final PrintWriter pw, final String name, final Object value) {
 
-        pw.print(xssApi.encodeForHTML(name));
+        pw.print(Encode.forHtmlContent(name));
         pw.print(": <b>");
 
         if ( value.getClass().isArray() ) {
@@ -158,11 +153,11 @@ public class HtmlRenderer implements Renderer  {
                 if (i > 0) {
                     pw.print(", ");
                 }
-                pw.print(xssApi.encodeForHTML(values[i].toString()));
+                pw.print(Encode.forHtmlContent(values[i].toString()));
             }
             pw.print(']');
         } else {
-            pw.print(xssApi.encodeForHTML(value.toString()));
+            pw.print(Encode.forHtmlContent(value.toString()));
         }
 
         pw.print("</b><br />");
