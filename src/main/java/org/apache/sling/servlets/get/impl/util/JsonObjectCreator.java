@@ -30,10 +30,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonValue;
+import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonValue;
 
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.sling.api.resource.Resource;

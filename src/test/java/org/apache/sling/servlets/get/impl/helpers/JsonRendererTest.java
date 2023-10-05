@@ -26,10 +26,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Calendar;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonPatch;
-import javax.json.JsonReader;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonPatch;
+import jakarta.json.JsonReader;
 
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
