@@ -266,9 +266,20 @@ public class StreamRenderer implements Renderer {
 
             if (ranges.size() == 1) {
                 Range range = ranges.get(0);
-                response.addHeader("Content-Range", "bytes " + range.start
-                        + "-" + range.end + "/" + range.length);
-                setContentLength(response, range.end - range.start + 1);
+
+                // range starts with 0 and length is less than range end,
+                // then set content length to resource length and response status to SC_OK.
+                if ( range.start == 0 && range.end > range.length) {
+
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    setContentLength(response, resource.getResourceMetadata().getContentLength());
+
+                } else {
+                    response.addHeader("Content-Range", "bytes " + range.start
+                            + "-" + range.end + "/" + range.length);
+                    setContentLength(response, range.end - range.start + 1);
+                }
+
                 copy(stream, out, range);
             } else {
 
@@ -737,8 +748,13 @@ public class StreamRenderer implements Renderer {
          * @return {@code true} if the range is valid, {@code false} otherwise
          */
         public boolean validate() {
-            if (end >= length) end = length - 1;
-            return ((start >= 0) && (end >= 0) && (start <= end) && (length > 0));
+            // check if range start from 0 and length of content is less than specified range, then return true
+            if ( start == 0 && end >= length ) {
+                return true;
+            } else {
+                if (end >= length) end = length - 1;
+                return ((start >= 0) && (end >= 0) && (start <= end) && (length > 0));
+            }
         }
 
     }

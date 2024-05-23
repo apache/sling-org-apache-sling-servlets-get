@@ -203,5 +203,34 @@ public class StreamRendererTest {
 
     }
 
+    @Test
+    public void test_render_file_with_length_greater_than_range() throws IOException {
+        StreamRenderer renderer = new StreamRenderer(true,null,null);
+        context.request().setResource(context.resourceResolver().getResource("/file.txt"));
+        context.request().setHeader("Range","bytes=0-8388607");
+        renderer.render(context.request(), context.response());
+        assertTrue(context.response().getOutputAsString().equals("not json"));
+        assertEquals(HttpServletResponse.SC_OK, context.response().getStatus());
+
+    }
+    @Test
+    public void test_render_file_with_length_less_than_range() throws IOException {
+        StreamRenderer renderer = new StreamRenderer(true,null,null);
+        context.request().setResource(context.resourceResolver().getResource("/file.txt"));
+        context.request().setHeader("Range","bytes=0-2");
+        renderer.render(context.request(), context.response());
+        assertTrue(context.response().getOutputAsString().equals("not json".substring(0,3)));
+        assertEquals(HttpServletResponse.SC_PARTIAL_CONTENT, context.response().getStatus());
+    }
+
+    @Test
+    public void test_render_file_with_length_equal_to_range() throws IOException {
+        StreamRenderer renderer = new StreamRenderer(true,null,null);
+        context.request().setResource(context.resourceResolver().getResource("/file.txt"));
+        context.request().setHeader("Range","bytes=0-7");
+        renderer.render(context.request(), context.response());
+        assertTrue(context.response().getOutputAsString().equals("not json"));
+        assertEquals(HttpServletResponse.SC_PARTIAL_CONTENT, context.response().getStatus());
+    }
 
 }
