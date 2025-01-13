@@ -32,56 +32,77 @@ import jakarta.json.JsonPatch;
 import jakarta.json.JsonReader;
 
 import org.apache.jackrabbit.util.ISO8601;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.request.builder.Builders;
+import org.apache.sling.api.request.builder.SlingJakartaHttpServletResponseResult;
+import org.apache.sling.api.uri.SlingUriBuilder;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
-import org.apache.sling.testing.mock.sling.servlet.MockSlingHttpServletRequest;
-import org.apache.sling.testing.mock.sling.servlet.MockSlingHttpServletResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class JsonRendererTest {
 
     @Rule
     public final SlingContext context = new SlingContext();
 
-    private MockSlingHttpServletRequest request;
-    private MockSlingHttpServletResponse response;
+    private SlingJakartaHttpServletRequest request;
+    private SlingJakartaHttpServletResponseResult response;
 
     private JsonRenderer jrs;
 
     @Before
     public void setup() {
         context.load().json("/data.json", "/content");
-        request = context.request();
-        response = context.response();
+        request = Mockito.mock(SlingJakartaHttpServletRequest.class);
+        response = Builders.newResponseBuilder().buildJakartaResponseResult();
 
         context.currentResource("/content");
-
+        Mockito.when(request.getResource()).thenReturn(context.currentResource());
         jrs = new JsonRenderer(42, false);
     }
 
     @Test
     public void testRecursionLevelA() {
-        context.requestPathInfo().setSelectorString("12");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"12"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
+
         assertEquals(12, jrs.getMaxRecursionLevel(request));
         assertFalse(jrs.isTidy(request));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testRecursionLevelB() {
-        context.requestPathInfo().setSelectorString("42.more");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"42", "more"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         jrs.getMaxRecursionLevel(request);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testRecursionLevelC() {
-        context.requestPathInfo().setSelectorString("more");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"more"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         jrs.getMaxRecursionLevel(request);
     }
 
     @Test
     public void testRecursionLevelD() {
-        context.requestPathInfo().setSelectorString("tidy");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"tidy"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         assertEquals(0, jrs.getMaxRecursionLevel(request));
     }
 
@@ -90,63 +111,103 @@ public class JsonRendererTest {
         // Level must be the last selector but
         // if the last selector is "tidy" there's
         // no error. "for historical reasons"
-        context.requestPathInfo().setSelectorString("46.tidy");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"46", "tidy"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         assertEquals(0, jrs.getMaxRecursionLevel(request));
     }
 
     @Test
     public void testRecursionLevelF() {
-        context.requestPathInfo().setSelectorString("tidy.45");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"tidy", "45"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         assertEquals(45, jrs.getMaxRecursionLevel(request));
         assertTrue(jrs.isTidy(request));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testRecursionLevelNumeric() {
-        context.requestPathInfo().setSelectorString("᭙");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"᭙"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         jrs.getMaxRecursionLevel(request);
     }
 
     @Test
     public void testRecursionLevelOverflow() {
-        context.requestPathInfo().setSelectorString(Long.toString(((long) Integer.MAX_VALUE)  + 1L));
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {Long.toString(((long) Integer.MAX_VALUE)  + 1L)})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         assertEquals(-1, jrs.getMaxRecursionLevel(request));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testRecursionLevelUnderflow() {
-        context.requestPathInfo().setSelectorString(Long.toString(((long) Integer.MIN_VALUE)  - 1L));
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {Long.toString(((long) Integer.MIN_VALUE)  - 1L)})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         jrs.getMaxRecursionLevel(request);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testRecursionLevelNegativ() {
-        context.requestPathInfo().setSelectorString(Long.toString( - 2L));
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {Long.toString( - 2L)})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         jrs.getMaxRecursionLevel(request);
     }
 
     @Test
     public void testRecursionLevelInfinity() {
-        context.requestPathInfo().setSelectorString("infinity");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"infinity"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         assertEquals(-1, jrs.getMaxRecursionLevel(request));
     }
 
     @Test
     public void testRecursionLevelInfinityNumeric() {
-        context.requestPathInfo().setSelectorString("-1");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"-1"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         assertEquals(-1, jrs.getMaxRecursionLevel(request));
     }
 
     @Test
     public void testBadRequest() throws IOException {
-        context.requestPathInfo().setSelectorString("bad.selectors");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"bad", "selectors"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         jrs.render(request, response);
         assertTrue(response.getStatus() == 400);
     }
 
     @Test
     public void testISO8601() throws IOException {
-        context.requestPathInfo().setSelectorString("1");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"1"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         String created = getJsonFromReader().getString("created");
         Calendar cal = ISO8601.parse(created);
         // at the time of the test the offset it not preserved
@@ -157,7 +218,11 @@ public class JsonRendererTest {
 
     @Test
     public void testECMA() throws IOException {
-        context.requestPathInfo().setSelectorString("1");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"1"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         JsonRenderer ecmajrs = new JsonRenderer(42, true);
         ecmajrs.render(request, response);
         String out = response.getOutputAsString();
@@ -168,14 +233,22 @@ public class JsonRendererTest {
 
     @Test
     public void testBoolean() throws IOException {
-        context.requestPathInfo().setSelectorString("1");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"1"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         assertTrue(getJsonFromReader().getBoolean("active"));
     }
 
     @Test
     // JSON impl only support Integers, JCR only supports Long values.
     public void testNumber() throws IOException {
-        context.requestPathInfo().setSelectorString("1");
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"1"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         assertTrue(getJsonFromReader().getInt("number") == 2);
     }
 
@@ -183,6 +256,11 @@ public class JsonRendererTest {
     // TODO investigating SLING-7890 - needs cleanup once we find out exactly what's going on
     public void testBooleansNoTidy() throws IOException {
         context.currentResource("/content/booleans");
+        Mockito.when(request.getResource()).thenReturn(context.currentResource());
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         final String expected = "{\"b2\":false,\"jcr:primaryType\":\"nt:unstructured\",\"s1\":\"true\",\"b1\":true,\"s2\":\"false\"}";
         JsonPatch diff;
         try(JsonReader jsonReader = Json.createReader(new StringReader(expected));
@@ -199,7 +277,12 @@ public class JsonRendererTest {
     // TODO investigating SLING-7890 - needs cleanup once we find out exactly what's going on
     public void testBooleansWithTidy() throws IOException {
         context.currentResource("/content/booleans");
-        context.requestPathInfo().setSelectorString(".tidy");
+        Mockito.when(request.getResource()).thenReturn(context.currentResource());
+        RequestPathInfo rpi = SlingUriBuilder
+            .createFrom(context.currentResource())
+            .setSelectors(new String[] {"tidy"})
+            .build();
+        Mockito.when(request.getRequestPathInfo()).thenReturn(rpi);
         final String expected = "{\n" +
             "  \"b2\": false,\n" +
             "  \"jcr:primaryType\": \"nt:unstructured\",\n" +

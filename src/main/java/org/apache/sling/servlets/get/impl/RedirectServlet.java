@@ -20,18 +20,18 @@ package org.apache.sling.servlets.get.impl;
 
 import java.io.IOException;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.SlingConstants;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.apache.sling.api.servlets.SlingJakartaSafeMethodsServlet;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
             "sling.servlet.methods=GET",
             "sling.servlet.prefix:Integer=-1"
     })
-public class RedirectServlet extends SlingSafeMethodsServlet {
+public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
 
     /** The name of the target property */
     public static final String TARGET_PROP = "sling:target";
@@ -81,8 +81,8 @@ public class RedirectServlet extends SlingSafeMethodsServlet {
     private Servlet defaultRenderServlet;
 
     @Override
-    protected void doGet(SlingHttpServletRequest request,
-            SlingHttpServletResponse response) throws ServletException,
+    protected void doGet(SlingJakartaHttpServletRequest request,
+            SlingJakartaHttpServletResponse response) throws ServletException,
             IOException {
 
         // handle json export of the redirect node
@@ -98,7 +98,7 @@ public class RedirectServlet extends SlingSafeMethodsServlet {
             request.getRequestProgressTracker().log(
                 "RedirectServlet: Response is already committed, not redirecting");
             return;
-        } else if (request.getAttribute(SlingConstants.ATTR_REQUEST_SERVLET) != null) {
+        } else if (request.getAttribute(SlingConstants.ATTR_REQUEST_JAKARTA_SERVLET) != null) {
             // included request will not redirect
             log.warn("RedirectServlet: Servlet is included, not redirecting");
             request.getRequestProgressTracker().log(
@@ -191,7 +191,7 @@ public class RedirectServlet extends SlingSafeMethodsServlet {
      * request.
      */
     static String toRedirectPath(String targetPath,
-            SlingHttpServletRequest request) {
+        SlingJakartaHttpServletRequest request) {
 
         // make sure the target path is absolute
         final String rawAbsPath;
@@ -230,7 +230,7 @@ public class RedirectServlet extends SlingSafeMethodsServlet {
      * @throws NullPointerException if request or target is <code>null</code>.
      */
     private static StringBuilder appendSelectorsExtensionSuffixQuery(
-            SlingHttpServletRequest request, StringBuilder target) {
+            SlingJakartaHttpServletRequest request, StringBuilder target) {
         // append current selectors, extension and suffix
         final RequestPathInfo rpi = request.getRequestPathInfo();
         if (rpi.getExtension() != null) {

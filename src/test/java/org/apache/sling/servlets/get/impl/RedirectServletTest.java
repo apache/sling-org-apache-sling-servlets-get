@@ -21,16 +21,21 @@ package org.apache.sling.servlets.get.impl;
 import java.util.Collections;
 import java.util.HashMap;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import junit.framework.TestCase;
-
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.request.builder.Builders;
+import org.apache.sling.api.request.builder.SlingHttpServletRequestBuilder;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
-import org.apache.sling.commons.testing.sling.MockResourceResolver;
-import org.apache.sling.commons.testing.sling.MockSlingHttpServletRequest;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.Mockito;
 
-public class RedirectServletTest extends TestCase {
+public class RedirectServletTest {
 
     static final String TEST_SCHEME = "http";
 
@@ -40,7 +45,7 @@ public class RedirectServletTest extends TestCase {
 
     static final String TEST_PREFIX = TEST_SCHEME + "://" + TEST_HOST;
 
-    public void testToAbsoluteURI() {
+    @Test public void testToAbsoluteURI() {
         final String http = "http";
         final String https = "https";
         final String scheme = "test";
@@ -52,26 +57,26 @@ public class RedirectServletTest extends TestCase {
         final String target = "/target";
 
         // regular building without default ports
-        assertEquals(http + "://" + host + ":" + portAny + target,
+        Assert.assertEquals(http + "://" + host + ":" + portAny + target,
                 RedirectServlet.toAbsoluteUri(http, host, portAny, target));
-        assertEquals(https + "://" + host + ":" + portAny + target,
+        Assert.assertEquals(https + "://" + host + ":" + portAny + target,
                 RedirectServlet.toAbsoluteUri(https, host, portAny, target));
-        assertEquals(scheme + "://" + host + ":" + portAny + target,
+        Assert.assertEquals(scheme + "://" + host + ":" + portAny + target,
                 RedirectServlet.toAbsoluteUri(scheme, host, portAny, target));
 
         // building with default ports
-        assertEquals(http + "://" + host + target, RedirectServlet.toAbsoluteUri(http, host, port80, target));
-        assertEquals(https + "://" + host + target, RedirectServlet.toAbsoluteUri(https, host, port443, target));
-        assertEquals(scheme + "://" + host + ":" + port80 + target,
+        Assert.assertEquals(http + "://" + host + target, RedirectServlet.toAbsoluteUri(http, host, port80, target));
+        Assert.assertEquals(https + "://" + host + target, RedirectServlet.toAbsoluteUri(https, host, port443, target));
+        Assert.assertEquals(scheme + "://" + host + ":" + port80 + target,
                 RedirectServlet.toAbsoluteUri(scheme, host, port80, target));
 
         // building without ports
-        assertEquals(http + "://" + host + target, RedirectServlet.toAbsoluteUri(http, host, portNone, target));
-        assertEquals(https + "://" + host + target, RedirectServlet.toAbsoluteUri(https, host, portNone, target));
-        assertEquals(scheme + "://" + host + target, RedirectServlet.toAbsoluteUri(scheme, host, portNone, target));
+        Assert.assertEquals(http + "://" + host + target, RedirectServlet.toAbsoluteUri(http, host, portNone, target));
+        Assert.assertEquals(https + "://" + host + target, RedirectServlet.toAbsoluteUri(https, host, portNone, target));
+        Assert.assertEquals(scheme + "://" + host + target, RedirectServlet.toAbsoluteUri(scheme, host, portNone, target));
     }
 
-    public void testGetStatus() {
+    @Test public void testGetStatus() {
         final int found = HttpServletResponse.SC_FOUND;
         final int valid = 768;
         final int invalidLow = 77;
@@ -89,7 +94,7 @@ public class RedirectServletTest extends TestCase {
         assertStatus(max, max);
     }
 
-    public void testSameParent() {
+    @Test public void testSameParent() {
         String base = "/a";
         String target = "/b";
         assertEqualsUri("/b", toRedirect(base, target), false);
@@ -103,19 +108,19 @@ public class RedirectServletTest extends TestCase {
         assertEqualsUri("/a/b/d", toRedirect(base, target), false);
     }
 
-    public void testTrailingSlash() {
+    @Test public void testTrailingSlash() {
         String base = "/a/b/c/";
         String target = "/a/b/c.html";
         assertEqualsUri("/a/b/c.html", toRedirect(base, target), false);
     }
 
-    public void testCommonAncestor() {
+    @Test public void testCommonAncestor() {
         String base = "/a/b/c/d";
         String target = "/a/b/x/y";
         assertEqualsUri("/a/b/x/y", toRedirect(base, target), false);
     }
 
-    public void testChild() {
+    @Test public void testChild() {
         String base = "/a.html";
         String target = "/a/b.html";
         assertEqualsUri("/a/b.html", toRedirect(base, target), false);
@@ -141,7 +146,7 @@ public class RedirectServletTest extends TestCase {
         assertEqualsUri("/a/b/c", toRedirect(base, target), false);
     }
 
-    public void testChildNonRoot() {
+    @Test public void testChildNonRoot() {
         String base = "/x/a.html";
         String target = "/x/a/b.html";
         assertEqualsUri("/x/a/b.html", toRedirect(base, target), false);
@@ -167,7 +172,7 @@ public class RedirectServletTest extends TestCase {
         assertEqualsUri("/x/a/b/c", toRedirect(base, target), false);
     }
 
-    public void testChildRelative() {
+    @Test public void testChildRelative() {
         String base = "/a";
         String target = "b.html";
         assertEqualsUri("/a/b.html", toRedirect(base, target), false);
@@ -185,7 +190,7 @@ public class RedirectServletTest extends TestCase {
         assertEqualsUri("/a/b/c", toRedirect(base, target), false);
     }
 
-    public void testChildNonRootRelative() {
+    @Test public void testChildNonRootRelative() {
         String base = "/x/a";
         String target = "b.html";
         assertEqualsUri("/x/a/b.html", toRedirect(base, target), false);
@@ -203,13 +208,13 @@ public class RedirectServletTest extends TestCase {
         assertEqualsUri("/x/a/b/c", toRedirect(base, target), false);
     }
 
-    public void testUnCommon() {
+    @Test public void testUnCommon() {
         String base = "/a/b/c/d";
         String target = "/w/x/y/z";
         assertEqualsUri("/w/x/y/z", toRedirect(base, target), false);
     }
 
-    public void testSibbling() {
+    @Test public void testSibbling() {
         String base = "/a/b";
         String target0 = "../y/z";
         assertEqualsUri("/a/y/z", toRedirect(base, target0), false);
@@ -221,7 +226,7 @@ public class RedirectServletTest extends TestCase {
         assertEqualsUri(base + "/" + target2, toRedirect(base, target2), false);
     }
 
-    public void testSelectorsEtc() {
+    @Test public void testSelectorsEtc() {
         assertEquals(null, null, null, null);
 
         assertEquals(null, "html", null, null);
@@ -239,17 +244,39 @@ public class RedirectServletTest extends TestCase {
         assertEquals("print.a4", "html", "/suffix.pdf", "xy=1");
     }
 
-    public void testEmptyPath() {
-        MockSlingHttpServletRequest request = new MockSlingHttpServletRequest("/", null, null, null, null, "",
-                TEST_SCHEME, TEST_HOST, TEST_PORT, "/webapp");
-        request.setResourceResolver(new MockResourceResolver());
+    @Test public void testRootPath() {
+        final Resource resource = Mockito.mock(Resource.class);
+        Mockito.when(resource.getPath()).thenReturn("/");
+        final ResourceResolver resolver = Mockito.mock(ResourceResolver.class);
+
+        Mockito.when(resolver.map(Mockito.any(HttpServletRequest.class), Mockito.anyString())).thenAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String path = (String) args[1];
+            return "/webapp" + path;
+        });
+        Mockito.when(resource.getResourceResolver()).thenReturn(resolver);
+        final SlingHttpServletRequestBuilder requestBuilder = Builders.newRequestBuilder(resource);
+        final SlingJakartaHttpServletRequest request = requestBuilder.buildJakartaRequest();
+
         String path = RedirectServlet.toRedirectPath("/index.html", request);
         assertEqualsUri("/webapp/index.html", path, false);
+    }
 
-        request = new MockSlingHttpServletRequest("/", null, null, null, null, "/", TEST_SCHEME, TEST_HOST, TEST_PORT,
-                "/webapp");
-        request.setResourceResolver(new MockResourceResolver());
-        path = RedirectServlet.toRedirectPath("/index.html", request);
+    @Test public void testEmptyPath() {
+        final Resource resource = Mockito.mock(Resource.class);
+        Mockito.when(resource.getPath()).thenReturn("");
+        final ResourceResolver resolver = Mockito.mock(ResourceResolver.class);
+
+        Mockito.when(resolver.map(Mockito.any(HttpServletRequest.class), Mockito.anyString())).thenAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String path = (String) args[1];
+            return "/webapp" + path;
+        });
+        Mockito.when(resource.getResourceResolver()).thenReturn(resolver);
+        final SlingHttpServletRequestBuilder requestBuilder = Builders.newRequestBuilder(resource);
+        final SlingJakartaHttpServletRequest request = requestBuilder.buildJakartaRequest();
+
+        String path = RedirectServlet.toRedirectPath("/index.html", request);
         assertEqualsUri("/webapp/index.html", path, false);
     }
 
@@ -280,9 +307,9 @@ public class RedirectServletTest extends TestCase {
 
     private static void assertEqualsUri(String expected, String actual, boolean isAbsolute) {
         if (isAbsolute) {
-            assertEquals(expected, actual);
+            Assert.assertEquals(expected, actual);
         } else {
-            assertEquals(expected, actual);
+            Assert.assertEquals(expected, actual);
         }
     }
 
@@ -299,7 +326,7 @@ public class RedirectServletTest extends TestCase {
 
         final int actualStatus = RedirectServlet.getStatus(valueMap);
 
-        assertEquals(expectedStatus, actualStatus);
+        Assert.assertEquals(expectedStatus, actualStatus);
     }
 
     private static String toRedirect(String basePath, String targetPath) {
@@ -308,10 +335,31 @@ public class RedirectServletTest extends TestCase {
 
     private static String toRedirect(String basePath, String selectors, String extension, String suffix,
             String queryString, String targetPath) {
-        MockSlingHttpServletRequest request = new MockSlingHttpServletRequest(basePath, selectors, extension, suffix,
-                queryString, basePath, TEST_SCHEME, TEST_HOST, TEST_PORT, "");
-        request.setResourceResolver(new MockResourceResolver());
+        final Resource resource = Mockito.mock(Resource.class);
+        Mockito.when(resource.getPath()).thenReturn(basePath);
+        final ResourceResolver resolver = Mockito.mock(ResourceResolver.class);
+
+        Mockito.when(resolver.map(Mockito.any(HttpServletRequest.class), Mockito.anyString())).thenAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String path = (String) args[1];
+            return path;
+        });
+        Mockito.when(resource.getResourceResolver()).thenReturn(resolver);
+        final SlingHttpServletRequestBuilder requestBuilder = Builders.newRequestBuilder(resource);
+        if (selectors != null) {
+            requestBuilder.withSelectors(selectors);
+        }
+        if (extension != null) {
+            requestBuilder.withExtension(extension);
+        }
+        if (suffix != null) {
+            requestBuilder.withSuffix(suffix);
+        }
+        if (queryString != null) {
+            String[] parts = queryString.split("=");
+            requestBuilder.withParameter(parts[0], parts[1]);
+        }
+        final SlingJakartaHttpServletRequest request = requestBuilder.buildJakartaRequest();
         return RedirectServlet.toRedirectPath(targetPath, request);
     }
-
 }

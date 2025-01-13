@@ -16,7 +16,7 @@
  */
 package org.apache.sling.servlets.get.impl.helpers;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
 import static org.apache.sling.api.servlets.HttpConstants.HEADER_IF_MODIFIED_SINCE;
 import static org.apache.sling.api.servlets.HttpConstants.HEADER_LAST_MODIFIED;
 
@@ -30,17 +30,17 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingConstants;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
@@ -99,11 +99,11 @@ public class StreamRenderer implements Renderer {
         this.context = context;
     }
 
-    public void render(SlingHttpServletRequest request,
-            SlingHttpServletResponse response) throws IOException {
-    	
+    public void render(SlingJakartaHttpServletRequest request,
+            SlingJakartaHttpServletResponse response) throws IOException {
+
         // whether this servlet is called as of a request include
-        final boolean included = request.getAttribute(SlingConstants.ATTR_REQUEST_SERVLET) != null;
+        final boolean included = request.getAttribute(SlingConstants.ATTR_REQUEST_JAKARTA_SERVLET) != null;
 
         // ensure no extension or "res"
         String ext = request.getRequestPathInfo().getExtension();
@@ -226,8 +226,8 @@ public class StreamRenderer implements Renderer {
 
     private void streamResource(final Resource resource,
             final InputStream stream, final boolean included,
-            final SlingHttpServletRequest request,
-            final SlingHttpServletResponse response) throws IOException {
+            final SlingJakartaHttpServletRequest request,
+            final SlingJakartaHttpServletResponse response) throws IOException {
         // finally stream the resource
 
         final ArrayList<Range> ranges;
@@ -281,8 +281,8 @@ public class StreamRenderer implements Renderer {
         }
     }
 
-    private void renderDirectory(final SlingHttpServletRequest request,
-            final SlingHttpServletResponse response, final boolean included)
+    private void renderDirectory(final SlingJakartaHttpServletRequest request,
+            final SlingJakartaHttpServletResponse response, final boolean included)
             throws IOException {
 
         // request is included or committed, not rendering index
@@ -346,7 +346,7 @@ public class StreamRenderer implements Renderer {
      * @param response
      */
     private void setHeaders(Resource resource,
-            SlingHttpServletResponse response) {
+            SlingJakartaHttpServletResponse response) {
 
         final ResourceMetadata meta = resource.getResourceMetadata();
         final long modifTime = meta.getModificationTime();
@@ -407,7 +407,7 @@ public class StreamRenderer implements Renderer {
     }
 
     private void renderIndex(Resource resource,
-            SlingHttpServletResponse response) throws IOException {
+            SlingJakartaHttpServletResponse response) throws IOException {
 
         response.setContentType("text/html");
         response.setCharacterEncoding("UTF-8");
@@ -526,7 +526,7 @@ public class StreamRenderer implements Renderer {
                 } catch(IOException e) {
                     exception = e;
                 }
-            } 
+            }
         }
 
         ostream.println();

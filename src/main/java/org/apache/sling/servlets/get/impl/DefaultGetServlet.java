@@ -21,16 +21,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.SlingConstants;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.apache.sling.api.servlets.SlingJakartaSafeMethodsServlet;
 import org.apache.sling.servlets.get.impl.helpers.HeadServletResponse;
 import org.apache.sling.servlets.get.impl.helpers.HtmlRenderer;
 import org.apache.sling.servlets.get.impl.helpers.JsonRenderer;
@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
             "sling.servlet.methods=HEAD"
     })
 @Designate(ocd=DefaultGetServlet.Config.class)
-public class DefaultGetServlet extends SlingSafeMethodsServlet {
+public class DefaultGetServlet extends SlingJakartaSafeMethodsServlet {
 
     private static final long serialVersionUID = -2714152339750885354L;
 
@@ -126,7 +126,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
                   "this basically means the number of Objects to return. Default value is " +
                   "200.")
         int json_maximumresults() default 200;
-        
+
         @AttributeDefinition(name = "Legacy ECMA date format", description="Enable legacy Sling ECMA format for dates")
         boolean ecmaSuport() default true;
     }
@@ -155,7 +155,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
     private boolean enableXml;
 
 	private boolean enableEcmaSupport;
-    
+
     public static final String EXT_HTML = "html";
 
     public static final String EXT_TXT = "txt";
@@ -218,9 +218,9 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
         Renderer streamRenderer = getDefaultRenderer(EXT_RES);
 
         rendererMap.put(null, streamRenderer);
-        
+
         rendererMap.put(EXT_RES, streamRenderer);
-        
+
         if (enableHtml) {
             rendererMap.put(EXT_HTML,
                     getDefaultRenderer(EXT_HTML));
@@ -273,8 +273,8 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
      *             existing resource.
      */
     @Override
-    protected void doGet(SlingHttpServletRequest request,
-            SlingHttpServletResponse response) throws ServletException,
+    protected void doGet(SlingJakartaHttpServletRequest request,
+            SlingJakartaHttpServletResponse response) throws ServletException,
             IOException {
 
         // cannot handle the request for missing resources
@@ -295,7 +295,7 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
             // as the response is already committed, in this case we just
             // do nothing (but log an error message)
             if (response.isCommitted()
-                || request.getAttribute(SlingConstants.ATTR_REQUEST_SERVLET) != null) {
+                || request.getAttribute(SlingConstants.ATTR_REQUEST_JAKARTA_SERVLET) != null) {
                 logger.error(
                     "No renderer for extension {}, cannot render resource {}",
                     ext, request.getResource());
@@ -312,8 +312,8 @@ public class DefaultGetServlet extends SlingSafeMethodsServlet {
     }
 
     @Override
-    protected void doHead(SlingHttpServletRequest request,
-                          SlingHttpServletResponse response) throws ServletException,
+    protected void doHead(SlingJakartaHttpServletRequest request,
+                          SlingJakartaHttpServletResponse response) throws ServletException,
             IOException {
 
         response = new HeadServletResponse(response);

@@ -20,11 +20,11 @@ package org.apache.sling.servlets.get.impl.helpers;
 import java.io.PrintWriter;
 import java.io.Writer;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
 
-import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
+import org.apache.sling.api.wrappers.SlingJakartaHttpServletResponseWrapper;
 
 /**
  * The <code>HeadServletResponse</code> is a Sling response wrapper which
@@ -32,13 +32,13 @@ import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
  * streams.
  */
 
-public class HeadServletResponse extends SlingHttpServletResponseWrapper {
+public class HeadServletResponse extends SlingJakartaHttpServletResponseWrapper {
 
     private ServletOutputStream stream;
 
     private PrintWriter writer;
 
-    public HeadServletResponse(SlingHttpServletResponse wrappedResponse) {
+    public HeadServletResponse(SlingJakartaHttpServletResponse wrappedResponse) {
         super(wrappedResponse);
     }
 

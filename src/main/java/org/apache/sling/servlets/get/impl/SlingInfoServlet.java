@@ -26,14 +26,14 @@ import java.util.Map;
 
 import jakarta.json.Json;
 import jakarta.json.stream.JsonGenerator;
-import javax.servlet.Servlet;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.request.ResponseUtil;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.apache.sling.api.servlets.SlingJakartaSafeMethodsServlet;
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -42,7 +42,7 @@ import org.osgi.service.component.annotations.Component;
 @SuppressWarnings("serial")
 @Component(service = Servlet.class, property = { "service.description=Sling Info Servlet",
         "service.vendor=The Apache Software Foundation", "sling.servlet.paths=/system/sling/info" })
-public class SlingInfoServlet extends SlingSafeMethodsServlet {
+public class SlingInfoServlet extends SlingJakartaSafeMethodsServlet {
 
     private static final String CACHE_CONTROL_HEADER = "Cache-Control";
 
@@ -50,7 +50,7 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
 
     static final String PROVIDER_LABEL = "sessionInfo";
 
-    private Map<String, String> getInfo(final SlingHttpServletRequest request) {
+    private Map<String, String> getInfo(final SlingJakartaHttpServletRequest request) {
         final Map<String, String> result = new HashMap<>();
 
         final ResourceResolver resolver = request.getResourceResolver();
@@ -65,7 +65,7 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
     }
 
     @Override
-    protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
+    protected void doGet(final SlingJakartaHttpServletRequest request, final SlingJakartaHttpServletResponse response)
             throws IOException {
 
         Map<String, String> data = null;
@@ -96,7 +96,7 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
         }
     }
 
-    private void renderJson(final SlingHttpServletResponse response, final Map<String, String> data)
+    private void renderJson(final SlingJakartaHttpServletResponse response, final Map<String, String> data)
             throws IOException {
         // render data in JSON format
         response.setContentType("application/json");
@@ -113,7 +113,7 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
         w.flush();
     }
 
-    private void renderHtml(final SlingHttpServletResponse response, final Map<String, String> data)
+    private void renderHtml(final SlingJakartaHttpServletResponse response, final Map<String, String> data)
             throws IOException {
         // render data in JSON format
         response.setContentType("text/html");
@@ -139,7 +139,7 @@ public class SlingInfoServlet extends SlingSafeMethodsServlet {
         out.flush();
     }
 
-    private void renderPlainText(final SlingHttpServletResponse response, final Map<String, String> data)
+    private void renderPlainText(final SlingJakartaHttpServletResponse response, final Map<String, String> data)
             throws IOException {
 
         // render data in JSON format
