@@ -16,14 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.sling.servlets.get.impl;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -32,13 +25,19 @@ import javax.jcr.version.Version;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionIterator;
 import javax.jcr.version.VersionManager;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.List;
+
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletException;
-
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.sling.api.SlingJakartaHttpServletRequest;
@@ -60,28 +59,34 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
  *
  * At the moment only JCR nodes are supported.
  */
-@Component(name="org.apache.sling.servlets.get.impl.version.VersionInfoServlet",
-           configurationPolicy=ConfigurationPolicy.REQUIRE,
-           service = Servlet.class,
-           property = {
-                    "service.description=Version info servlet",
-                    "service.vendor=The Apache Software Foundation",
-                    "sling.servlet.resourceTypes=sling/servlet/default",
-                    "sling.servlet.methods=GET",
-                    "sling.servlet.selectors=V",
-                    "sling.servlet.extensions=json"
-           })
+@Component(
+        name = "org.apache.sling.servlets.get.impl.version.VersionInfoServlet",
+        configurationPolicy = ConfigurationPolicy.REQUIRE,
+        service = Servlet.class,
+        property = {
+            "service.description=Version info servlet",
+            "service.vendor=The Apache Software Foundation",
+            "sling.servlet.resourceTypes=sling/servlet/default",
+            "sling.servlet.methods=GET",
+            "sling.servlet.selectors=V",
+            "sling.servlet.extensions=json"
+        })
 @Designate(ocd = VersionInfoServlet.Config.class)
 public class VersionInfoServlet extends SlingJakartaSafeMethodsServlet {
 
-    @ObjectClassDefinition(name = "Apache Sling Version Info Servlet",
+    @ObjectClassDefinition(
+            name = "Apache Sling Version Info Servlet",
             description = "The Sling Version Info Servlet renders list of versions available for the current resource")
     public @interface Config {
 
-        @AttributeDefinition(name = "Selector", description="List of selectors this servlet handles to display the versions")
+        @AttributeDefinition(
+                name = "Selector",
+                description = "List of selectors this servlet handles to display the versions")
         String[] sling_servlet_selectors() default "V";
 
-        @AttributeDefinition(name = "Legacy ECMA date format", description="Enable legacy Sling ECMA format for dates")
+        @AttributeDefinition(
+                name = "Legacy ECMA date format",
+                description = "Enable legacy Sling ECMA format for dates")
         boolean ecmaSuport() default true;
     }
 
@@ -105,22 +110,25 @@ public class VersionInfoServlet extends SlingJakartaSafeMethodsServlet {
 
     @Activate
     private void activate(Config config) {
-    	this.ecmaSupport = config.ecmaSuport();
+        this.ecmaSupport = config.ecmaSuport();
     }
 
     @Override
-    public void doGet(SlingJakartaHttpServletRequest req, SlingJakartaHttpServletResponse resp) throws ServletException,
-            IOException {
+    public void doGet(SlingJakartaHttpServletRequest req, SlingJakartaHttpServletResponse resp)
+            throws ServletException, IOException {
         resp.setContentType(req.getResponseContentType());
         resp.setCharacterEncoding("UTF-8");
         final boolean tidy = hasSelector(req, TIDY);
         final boolean harray = hasSelector(req, HARRAY);
 
-        final JsonToText.Options opt = renderer.options().withIndent(tidy ? INDENT_SPACES : 0)
-                    .withArraysForChildren(harray);
+        final JsonToText.Options opt =
+                renderer.options().withIndent(tidy ? INDENT_SPACES : 0).withArraysForChildren(harray);
 
         try {
-        	VersionManager vm = req.getResourceResolver().adaptTo(Session.class).getWorkspace().getVersionManager();
+            VersionManager vm = req.getResourceResolver()
+                    .adaptTo(Session.class)
+                    .getWorkspace()
+                    .getVersionManager();
             resp.getWriter().write(renderer.prettyPrint(getJsonObject(req.getResource(), vm), opt));
         } catch (Exception e) {
             throw new ServletException(e);
@@ -137,7 +145,7 @@ public class VersionInfoServlet extends SlingJakartaSafeMethodsServlet {
         final VersionHistory history = vm.getVersionHistory(absPath);
         final Version baseVersion = vm.getBaseVersion(absPath);
 
-        for (final VersionIterator it = history.getAllVersions(); it.hasNext();) {
+        for (final VersionIterator it = history.getAllVersions(); it.hasNext(); ) {
             final Version v = it.nextVersion();
             final JsonObjectBuilder obj = Json.createObjectBuilder();
             obj.add("created", createdDate(v));
@@ -191,11 +199,10 @@ public class VersionInfoServlet extends SlingJakartaSafeMethodsServlet {
     }
 
     private String createdDate(Node node) throws RepositoryException {
-    	Calendar cal = node.getProperty(JcrConstants.JCR_CREATED).getDate();
-    	if (ecmaSupport) {
+        Calendar cal = node.getProperty(JcrConstants.JCR_CREATED).getDate();
+        if (ecmaSupport) {
             return JsonObjectCreator.formatEcma(cal);
-    	}
-    	return ISO8601.format(cal);
+        }
+        return ISO8601.format(cal);
     }
-
 }

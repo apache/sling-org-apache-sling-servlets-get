@@ -18,9 +18,6 @@
  */
 package org.apache.sling.servlets.get.impl.helpers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,7 +29,7 @@ import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
-
+import junitx.util.PrivateAccessor;
 import org.apache.sling.api.SlingJakartaHttpServletRequest;
 import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.request.RequestDispatcherOptions;
@@ -47,17 +44,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import junitx.util.PrivateAccessor;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class StreamRendererTest {
 
     @Rule
     public SlingContext context = new SlingContext(ResourceResolverType.JCR_OAK);
 
-
     @Before
     public void setup() {
-        context.create().resource("/abc.txt","prop","value");
+        context.create().resource("/abc.txt", "prop", "value");
         context.build().file("file.txt", this.getClass().getResourceAsStream("/samplefile.json"));
     }
 
@@ -113,30 +110,42 @@ public class StreamRendererTest {
         // with BufferedInputStream
         assertCopyRange(expected, new BufferedInputStream(new ByteArrayInputStream(expected)), a, b);
         // without available()
-        assertCopyRange(expected, new ByteArrayInputStream(expected) {
-            @Override
-            public synchronized int available() {
-                return 0;
-            }
-        }, a, b);
+        assertCopyRange(
+                expected,
+                new ByteArrayInputStream(expected) {
+                    @Override
+                    public synchronized int available() {
+                        return 0;
+                    }
+                },
+                a,
+                b);
         // with BufferedInputStream and without available()
-        assertCopyRange(expected, new BufferedInputStream(new ByteArrayInputStream(expected) {
-            @Override
-            public synchronized int available() {
-                return 0;
-            }
-        }), a, b);
+        assertCopyRange(
+                expected,
+                new BufferedInputStream(new ByteArrayInputStream(expected) {
+                    @Override
+                    public synchronized int available() {
+                        return 0;
+                    }
+                }),
+                a,
+                b);
         // with an input stream that does not return everything in read()
-        assertCopyRange(expected, new ByteArrayInputStream(expected) {
-            @Override
-            public synchronized int read(byte[] b, int off, int len) {
-                // allow maximum of 10
-                if (len > 10) {
-                    len = 10;
-                }
-                return super.read(b, off, len);
-            }
-        }, a, b);
+        assertCopyRange(
+                expected,
+                new ByteArrayInputStream(expected) {
+                    @Override
+                    public synchronized int read(byte[] b, int off, int len) {
+                        // allow maximum of 10
+                        if (len > 10) {
+                            len = 10;
+                        }
+                        return super.read(b, off, len);
+                    }
+                },
+                a,
+                b);
     }
 
     private void assertCopyRange(byte[] expected, InputStream input, int a, int b) throws IOException {
@@ -159,26 +168,28 @@ public class StreamRendererTest {
         final ResourceMetadata meta = Mockito.mock(ResourceMetadata.class);
         final ServletContext sc = Mockito.mock(ServletContext.class);
 
-        StreamRenderer streamRendererServlet = new StreamRenderer(true, new String[] { "/" }, sc);
+        StreamRenderer streamRendererServlet = new StreamRenderer(true, new String[] {"/"}, sc);
 
         Mockito.when(resource.getResourceMetadata()).thenReturn(meta);
-        PrivateAccessor.invoke(streamRendererServlet, "setHeaders",
-                new Class[] { Resource.class, SlingJakartaHttpServletResponse.class }, new Object[] { resource, response });
+        PrivateAccessor.invoke(
+                streamRendererServlet,
+                "setHeaders",
+                new Class[] {Resource.class, SlingJakartaHttpServletResponse.class},
+                new Object[] {resource, response});
         Mockito.verify(response, Mockito.times(1)).setContentType("application/octet-stream");
     }
 
-
     @Test
     public void test_render_file() throws IOException {
-        StreamRenderer renderer = new StreamRenderer(true,null,null);
-        final SlingJakartaHttpServletRequest request = Builders.newRequestBuilder(context.resourceResolver().getResource("/file.txt"))
-            .buildJakartaRequest();
-        final SlingJakartaHttpServletResponseResult response = Builders.newResponseBuilder()
-            .buildJakartaResponseResult();
+        StreamRenderer renderer = new StreamRenderer(true, null, null);
+        final SlingJakartaHttpServletRequest request = Builders.newRequestBuilder(
+                        context.resourceResolver().getResource("/file.txt"))
+                .buildJakartaRequest();
+        final SlingJakartaHttpServletResponseResult response =
+                Builders.newResponseBuilder().buildJakartaResponseResult();
         renderer.render(request, response);
         assertTrue(response.getOutputAsString().equals("not json"));
         assertEquals(HttpServletResponse.SC_OK, context.response().getStatus());
-
     }
 
     @Test
@@ -186,19 +197,19 @@ public class StreamRendererTest {
         final ServletContext sc = Mockito.mock(ServletContext.class);
         final RequestDispatcher dispatcher = Mockito.mock(RequestDispatcher.class);
         final SlingJakartaHttpServletRequest internalRequest = Mockito.mock(SlingJakartaHttpServletRequest.class);
-        Mockito.when(internalRequest.getRequestDispatcher(Mockito.anyString(), Mockito.any(RequestDispatcherOptions.class))).thenReturn(dispatcher);
+        Mockito.when(internalRequest.getRequestDispatcher(
+                        Mockito.anyString(), Mockito.any(RequestDispatcherOptions.class)))
+                .thenReturn(dispatcher);
 
         Resource root = context.resourceResolver().getResource("/");
         final SlingJakartaHttpServletRequest request = Builders.newRequestBuilder(root)
-            .useRequestDispatcherFrom(internalRequest)
-            .buildJakartaRequest();
-        final SlingJakartaHttpServletResponseResult response = Builders.newResponseBuilder()
-            .buildJakartaResponseResult();
-        StreamRenderer renderer = new StreamRenderer(true,new String[] {"/"}, sc);
+                .useRequestDispatcherFrom(internalRequest)
+                .buildJakartaRequest();
+        final SlingJakartaHttpServletResponseResult response =
+                Builders.newResponseBuilder().buildJakartaResponseResult();
+        StreamRenderer renderer = new StreamRenderer(true, new String[] {"/"}, sc);
         renderer.render(request, response);
         assertEquals(HttpServletResponse.SC_OK, response.getStatus());
         Mockito.verify(dispatcher).include(Mockito.any(), Mockito.any());
     }
-
-
 }

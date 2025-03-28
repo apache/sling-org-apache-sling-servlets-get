@@ -23,7 +23,6 @@ import java.io.IOException;
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.SlingJakartaHttpServletRequest;
 import org.apache.sling.api.SlingJakartaHttpServletResponse;
@@ -58,14 +57,15 @@ import org.slf4j.LoggerFactory;
  * Those requests are handed off to the DefaultGetServlet for handling
  */
 @SuppressWarnings("serial")
-@Component(service = Servlet.class,
-    property = {
+@Component(
+        service = Servlet.class,
+        property = {
             "service.description=Request Redirect Servlet",
             "service.vendor=The Apache Software Foundation",
             "sling.servlet.resourceTypes=sling:redirect",
             "sling.servlet.methods=GET",
             "sling.servlet.prefix:Integer=-1"
-    })
+        })
 public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
 
     /** The name of the target property */
@@ -77,13 +77,12 @@ public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
     /** default log */
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Reference(target="(component.name=org.apache.sling.servlets.get.DefaultGetServlet)")
+    @Reference(target = "(component.name=org.apache.sling.servlets.get.DefaultGetServlet)")
     private Servlet defaultRenderServlet;
 
     @Override
-    protected void doGet(SlingJakartaHttpServletRequest request,
-            SlingJakartaHttpServletResponse response) throws ServletException,
-            IOException {
+    protected void doGet(SlingJakartaHttpServletRequest request, SlingJakartaHttpServletResponse response)
+            throws ServletException, IOException {
 
         // handle json export of the redirect node
         if (DefaultGetServlet.EXT_JSON.equals(request.getRequestPathInfo().getExtension())) {
@@ -95,14 +94,12 @@ public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
         if (response.isCommitted()) {
             // committed response cannot be redirected
             log.warn("RedirectServlet: Response is already committed, not redirecting");
-            request.getRequestProgressTracker().log(
-                "RedirectServlet: Response is already committed, not redirecting");
+            request.getRequestProgressTracker().log("RedirectServlet: Response is already committed, not redirecting");
             return;
         } else if (request.getAttribute(SlingConstants.ATTR_REQUEST_JAKARTA_SERVLET) != null) {
             // included request will not redirect
             log.warn("RedirectServlet: Servlet is included, not redirecting");
-            request.getRequestProgressTracker().log(
-                "RedirectServlet: Servlet is included, not redirecting");
+            request.getRequestProgressTracker().log("RedirectServlet: Servlet is included, not redirecting");
             return;
         }
 
@@ -116,11 +113,9 @@ public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
         }
         if (targetPath == null) {
             // old behaviour
-            final Resource targetResource = request.getResourceResolver().getResource(
-                rsrc, TARGET_PROP);
+            final Resource targetResource = request.getResourceResolver().getResource(rsrc, TARGET_PROP);
             if (targetResource == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    "Missing target for redirection");
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Missing target for redirection");
                 return;
             }
 
@@ -136,8 +131,8 @@ public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
                 targetPath = toRedirectPath(targetPath, request);
             } else {
                 // just append any selectors, extension, suffix and query string
-                targetPath = appendSelectorsExtensionSuffixQuery(request,
-                    new StringBuilder(targetPath)).toString();
+                targetPath = appendSelectorsExtensionSuffixQuery(request, new StringBuilder(targetPath))
+                        .toString();
             }
 
             final int status = getStatus(valueMap);
@@ -154,8 +149,7 @@ public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
         }
 
         // no way of finding the target, just fail
-        response.sendError(HttpServletResponse.SC_NOT_FOUND,
-            "Cannot redirect to target resource " + targetPath);
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cannot redirect to target resource " + targetPath);
     }
 
     /**
@@ -182,7 +176,6 @@ public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
 
         // fall back to default value
         return HttpServletResponse.SC_FOUND;
-
     }
 
     /**
@@ -190,8 +183,7 @@ public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
      * including any selectors, extension, suffix and query from the current
      * request.
      */
-    static String toRedirectPath(String targetPath,
-        SlingJakartaHttpServletRequest request) {
+    static String toRedirectPath(String targetPath, SlingJakartaHttpServletRequest request) {
 
         // make sure the target path is absolute
         final String rawAbsPath;
@@ -266,8 +258,7 @@ public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
      *            not be an absolute URI.
      * @return The absolute URI built from the components.
      */
-    static String toAbsoluteUri(final String scheme, final String host,
-            final int port, final String targetPath) {
+    static String toAbsoluteUri(final String scheme, final String host, final int port, final String targetPath) {
 
         // 1. scheme and host
         final StringBuilder absUriBuilder = new StringBuilder();
@@ -304,15 +295,10 @@ public class RedirectServlet extends SlingJakartaSafeMethodsServlet {
             }
             if (!((c >= 'a' && c <= 'z')
                     || (c >= 'A' && c <= 'Z')
-                    || (i > 0
-                            && ((c >= '0' && c <= '9')
-                                    || c == '.'
-                                    || c == '+'
-                                    || c == '-')))) {
+                    || (i > 0 && ((c >= '0' && c <= '9') || c == '.' || c == '+' || c == '-')))) {
                 break;
             }
         }
         return false;
     }
-
 }

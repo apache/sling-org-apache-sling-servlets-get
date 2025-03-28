@@ -34,7 +34,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
-
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
@@ -71,7 +70,7 @@ public class JsonObjectCreator {
     public JsonObjectBuilder create() {
         final JsonObjectBuilder obj = Json.createObjectBuilder();
 
-         if (valueMap.isEmpty()) {
+        if (valueMap.isEmpty()) {
             final String value = resource.adaptTo(String.class);
             if (value != null) {
                 obj.add(resource.getName(), value.toString());
@@ -110,10 +109,10 @@ public class JsonObjectCreator {
     }
 
     /** Dump only a value in the correct format */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private JsonValue getValue(Object value) {
-        if ( value instanceof Supplier ) {
-            return getValue(((Supplier)value).get());
+        if (value instanceof Supplier) {
+            return getValue(((Supplier) value).get());
         }
 
         if (value == null) {
@@ -131,7 +130,7 @@ public class JsonObjectCreator {
             }
 
         } else if (value instanceof Boolean) {
-            final Boolean bool = (Boolean)value;
+            final Boolean bool = (Boolean) value;
             return bool ? JsonValue.TRUE : JsonValue.FALSE;
 
         } else if (value instanceof Long) {
@@ -186,11 +185,11 @@ public class JsonObjectCreator {
      */
     @SuppressWarnings("rawtypes")
     private void createProperty(final JsonObjectBuilder obj, final String key, final Object value) {
-        if ( value == null ) {
+        if (value == null) {
             return;
         }
-        if ( value instanceof Supplier ) {
-            createProperty(obj, key, ((Supplier)value).get());
+        if (value instanceof Supplier) {
+            createProperty(obj, key, ((Supplier) value).get());
             return;
         }
 
@@ -205,8 +204,8 @@ public class JsonObjectCreator {
             values = new Object[Array.getLength(value)];
             for (int i = 0; i < length; i++) {
                 values[i] = Array.get(value, i);
-                while ( values[i] instanceof Supplier ) {
-                    values[i] = ((Supplier)values[i]).get();
+                while (values[i] instanceof Supplier) {
+                    values[i] = ((Supplier) values[i]).get();
                 }
             }
         }
@@ -229,7 +228,7 @@ public class JsonObjectCreator {
             return;
         }
 
-        if (values != null ) {
+        if (values != null) {
             obj.add(key, getValue(values));
         } else {
             obj.add(key, getValue(value));

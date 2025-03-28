@@ -18,17 +18,16 @@
  */
 package org.apache.sling.servlets.get.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.lang.reflect.Field;
 import java.util.Map;
 
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletContext;
-
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class DefaultGetServletTest {
 
@@ -45,7 +44,7 @@ public class DefaultGetServletTest {
         Mockito.when(config.enable_json()).thenReturn(true);
         Mockito.when(config.enable_xml()).thenReturn(false);
         Mockito.when(config.enable_txt()).thenReturn(false);
-        Mockito.when(config.aliases()).thenReturn(new String[] { "xml:pdf" });
+        Mockito.when(config.aliases()).thenReturn(new String[] {"xml:pdf"});
         servlet.activate(config);
 
         servlet.init();

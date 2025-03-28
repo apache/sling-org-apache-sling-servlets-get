@@ -18,8 +18,6 @@
  */
 package org.apache.sling.servlets.get.impl.helpers;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -27,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jakarta.servlet.ServletException;
-
 import org.apache.sling.api.SlingJakartaHttpServletRequest;
 import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -35,6 +32,8 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import static org.junit.Assert.assertTrue;
 
 public class HtmlRendererTest {
 

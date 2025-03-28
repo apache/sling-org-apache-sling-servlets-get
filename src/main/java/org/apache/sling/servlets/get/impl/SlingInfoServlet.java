@@ -28,7 +28,6 @@ import jakarta.json.Json;
 import jakarta.json.stream.JsonGenerator;
 import jakarta.servlet.Servlet;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.sling.api.SlingJakartaHttpServletRequest;
 import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.request.ResponseUtil;
@@ -40,8 +39,13 @@ import org.osgi.service.component.annotations.Component;
  * The <code>SlingInfoServlet</code>
  */
 @SuppressWarnings("serial")
-@Component(service = Servlet.class, property = { "service.description=Sling Info Servlet",
-        "service.vendor=The Apache Software Foundation", "sling.servlet.paths=/system/sling/info" })
+@Component(
+        service = Servlet.class,
+        property = {
+            "service.description=Sling Info Servlet",
+            "service.vendor=The Apache Software Foundation",
+            "sling.servlet.paths=/system/sling/info"
+        })
 public class SlingInfoServlet extends SlingJakartaSafeMethodsServlet {
 
     private static final String CACHE_CONTROL_HEADER = "Cache-Control";
@@ -92,7 +96,6 @@ public class SlingInfoServlet extends SlingJakartaSafeMethodsServlet {
             } else { // default to html
                 renderHtml(response, data);
             }
-
         }
     }
 
@@ -103,7 +106,7 @@ public class SlingInfoServlet extends SlingJakartaSafeMethodsServlet {
         response.setCharacterEncoding("UTF-8");
 
         final Writer out = response.getWriter();
-        //deliberately not closing, as that closes the response out.
+        // deliberately not closing, as that closes the response out.
         final JsonGenerator w = Json.createGenerator(out);
         w.writeStartObject();
         for (final Map.Entry<String, String> e : data.entrySet()) {
