@@ -24,8 +24,8 @@ import static org.junit.Assert.assertNotNull;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletContext;
 
 import org.junit.Test;
 import org.mockito.Mockito;

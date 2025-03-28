@@ -22,11 +22,11 @@ import java.math.BigInteger;
 
 import jakarta.json.Json;
 import jakarta.json.stream.JsonGenerator;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.SlingException;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
@@ -68,8 +68,8 @@ public class JsonRenderer implements Renderer {
         this.ecmaSupport = ecmaSupport;
     }
 
-    public void render(SlingHttpServletRequest req,
-            SlingHttpServletResponse resp) throws IOException {
+    public void render(SlingJakartaHttpServletRequest req,
+            SlingJakartaHttpServletResponse resp) throws IOException {
         // Access and check our data
         final Resource r = req.getResource();
         if (ResourceUtil.isNonExistingResource(r)) {
@@ -123,7 +123,7 @@ public class JsonRenderer implements Renderer {
 
             } else {
                 // We are not allowed to do the dump.
-                // Send a 300 
+                // Send a 300
                 String tidyUrl = (tidy) ? "tidy." : "";
                 resp.setStatus(HttpServletResponse.SC_MULTIPLE_CHOICES);
                 StringWriter writer = new StringWriter();
@@ -150,7 +150,7 @@ public class JsonRenderer implements Renderer {
      * @return the recursion level
      * @throws IllegalArgumentException if the detected selector is not a number
      */
-    protected int getMaxRecursionLevel(SlingHttpServletRequest req) throws IllegalArgumentException {
+    protected int getMaxRecursionLevel(SlingJakartaHttpServletRequest req) throws IllegalArgumentException {
         int maxRecursionLevels = 0;
         final String[] selectors = req.getRequestPathInfo().getSelectors();
         if (selectors != null && selectors.length > 0) {
@@ -199,7 +199,7 @@ public class JsonRenderer implements Renderer {
      * @param selectorToCheck the selector
      * @return {@code true} if the selector is present, {@code false} otherwise
      */
-    protected boolean hasSelector(SlingHttpServletRequest req, String selectorToCheck) {
+    protected boolean hasSelector(SlingJakartaHttpServletRequest req, String selectorToCheck) {
         for(String selector : req.getRequestPathInfo().getSelectors()) {
             if(selectorToCheck.equals(selector)) {
                 return true;
@@ -213,7 +213,7 @@ public class JsonRenderer implements Renderer {
      * @param req the request
      * @return {@code true} if the request contains the {@link #TIDY} selector, {@code false} otherwise
      */
-    protected boolean isTidy(SlingHttpServletRequest req) {
+    protected boolean isTidy(SlingJakartaHttpServletRequest req) {
         return hasSelector(req, TIDY);
     }
 

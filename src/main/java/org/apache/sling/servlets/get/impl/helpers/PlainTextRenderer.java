@@ -21,10 +21,10 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
@@ -37,8 +37,8 @@ import org.apache.sling.api.resource.ResourceUtil;
 public class PlainTextRenderer implements Renderer {
 
 
-    public void render(SlingHttpServletRequest req,
-            SlingHttpServletResponse resp) throws IOException {
+    public void render(SlingJakartaHttpServletRequest req,
+            SlingJakartaHttpServletResponse resp) throws IOException {
         final Resource r = req.getResource();
         if (ResourceUtil.isNonExistingResource(r)) {
             throw new ResourceNotFoundException("No data to render.");
@@ -68,8 +68,8 @@ public class PlainTextRenderer implements Renderer {
 
     /** Render synthetic resource */
     /*
-     * TODO private void renderSyntheticResource(SlingHttpServletRequest
-     * req,SlingHttpServletResponse resp,SyntheticResourceData data) throws
+     * TODO private void renderSyntheticResource(SlingJakartaHttpServlet
+     * req,SlingJakartaHttpServletResponse resp,SyntheticResourceData data) throws
      * IOException { resp.setContentType(responseContentType);
      * resp.getOutputStream().write(data.toString().getBytes()); }
      */

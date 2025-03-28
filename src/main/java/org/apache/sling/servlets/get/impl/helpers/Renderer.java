@@ -19,11 +19,11 @@ package org.apache.sling.servlets.get.impl.helpers;
 
 import java.io.IOException;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 
 public interface Renderer {
 
-    void render(final SlingHttpServletRequest req, final SlingHttpServletResponse resp) throws IOException;
+    void render(final SlingJakartaHttpServletRequest req, final SlingJakartaHttpServletResponse resp) throws IOException;
 
 }

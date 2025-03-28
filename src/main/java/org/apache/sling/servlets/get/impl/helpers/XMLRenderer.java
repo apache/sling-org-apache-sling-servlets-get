@@ -19,12 +19,12 @@ package org.apache.sling.servlets.get.impl.helpers;
 import java.io.IOException;
 
 import javax.jcr.Node;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.SlingConstants;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
@@ -43,8 +43,8 @@ public class XMLRenderer implements Renderer {
 
 
     @Override
-    public void render(SlingHttpServletRequest req,
-                         SlingHttpServletResponse resp)
+    public void render(SlingJakartaHttpServletRequest req,
+                         SlingJakartaHttpServletResponse resp)
     throws IOException {
         final Resource r = req.getResource();
 
@@ -56,7 +56,7 @@ public class XMLRenderer implements Renderer {
         resp.setCharacterEncoding("UTF-8");
 
         // are we included?
-        final boolean isIncluded = req.getAttribute(SlingConstants.ATTR_REQUEST_SERVLET) != null;
+        final boolean isIncluded = req.getAttribute(SlingConstants.ATTR_REQUEST_JAKARTA_SERVLET) != null;
 
         try {
             final Node node = r.adaptTo(Node.class);

@@ -26,10 +26,10 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Before;
@@ -38,14 +38,14 @@ import org.mockito.Mockito;
 
 public class HtmlRendererTest {
 
-    private SlingHttpServletRequest request;
-    private SlingHttpServletResponse response;
+    private SlingJakartaHttpServletRequest request;
+    private SlingJakartaHttpServletResponse response;
 
     private StringWriter writer;
 
     @Before
     public void setup() throws IOException {
-        request = Mockito.mock(SlingHttpServletRequest.class);
+        request = Mockito.mock(SlingJakartaHttpServletRequest.class);
 
         final ResourceResolver resolver = Mockito.mock(ResourceResolver.class);
         Mockito.when(request.getResourceResolver()).thenReturn(resolver);
@@ -58,7 +58,7 @@ public class HtmlRendererTest {
         props.put("key", "<script>alert(1);</script>");
         Mockito.when(resource.adaptTo(Map.class)).thenReturn(props);
 
-        response = Mockito.mock(SlingHttpServletResponse.class);
+        response = Mockito.mock(SlingJakartaHttpServletResponse.class);
 
         this.writer = new StringWriter();
         Mockito.when(response.getWriter()).thenReturn(new PrintWriter(this.writer));

@@ -36,15 +36,15 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletException;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.util.ISO8601;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.apache.sling.api.servlets.SlingJakartaSafeMethodsServlet;
 import org.apache.sling.servlets.get.impl.util.JsonObjectCreator;
 import org.apache.sling.servlets.get.impl.util.JsonToText;
 import org.osgi.service.component.annotations.Activate;
@@ -72,7 +72,7 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
                     "sling.servlet.extensions=json"
            })
 @Designate(ocd = VersionInfoServlet.Config.class)
-public class VersionInfoServlet extends SlingSafeMethodsServlet {
+public class VersionInfoServlet extends SlingJakartaSafeMethodsServlet {
 
     @ObjectClassDefinition(name = "Apache Sling Version Info Servlet",
             description = "The Sling Version Info Servlet renders list of versions available for the current resource")
@@ -80,13 +80,13 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
 
         @AttributeDefinition(name = "Selector", description="List of selectors this servlet handles to display the versions")
         String[] sling_servlet_selectors() default "V";
-        
+
         @AttributeDefinition(name = "Legacy ECMA date format", description="Enable legacy Sling ECMA format for dates")
         boolean ecmaSuport() default true;
     }
-    
+
     private static final long serialVersionUID = 1656887064561951302L;
-    
+
     private boolean ecmaSupport;
 
     /** Selector that means "pretty-print the output */
@@ -100,16 +100,16 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
 
     /** How much to indent in tidy mode */
     public static final int INDENT_SPACES = 2;
-    
+
     private final JsonToText renderer = new JsonToText();
-    
+
     @Activate
     private void activate(Config config) {
     	this.ecmaSupport = config.ecmaSuport();
     }
 
     @Override
-    public void doGet(SlingHttpServletRequest req, SlingHttpServletResponse resp) throws ServletException,
+    public void doGet(SlingJakartaHttpServletRequest req, SlingJakartaHttpServletResponse resp) throws ServletException,
             IOException {
         resp.setContentType(req.getResponseContentType());
         resp.setCharacterEncoding("UTF-8");
@@ -118,7 +118,7 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
 
         final JsonToText.Options opt = renderer.options().withIndent(tidy ? INDENT_SPACES : 0)
                     .withArraysForChildren(harray);
-        
+
         try {
         	VersionManager vm = req.getResourceResolver().adaptTo(Session.class).getWorkspace().getVersionManager();
             resp.getWriter().write(renderer.prettyPrint(getJsonObject(req.getResource(), vm), opt));
@@ -136,14 +136,14 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
         final String absPath = resource.getPath();
         final VersionHistory history = vm.getVersionHistory(absPath);
         final Version baseVersion = vm.getBaseVersion(absPath);
-        
+
         for (final VersionIterator it = history.getAllVersions(); it.hasNext();) {
             final Version v = it.nextVersion();
             final JsonObjectBuilder obj = Json.createObjectBuilder();
             obj.add("created", createdDate(v));
             obj.add("successors", getArrayBuilder(getNames(v.getSuccessors())));
             obj.add("predecessors", getArrayBuilder(getNames(v.getPredecessors())));
-            
+
             obj.add("labels", getArrayBuilder(history.getVersionLabels(v)));
             obj.add("baseVersion", baseVersion.isSame(v));
             result.add(v.getName(), obj);
@@ -151,24 +151,24 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
 
         return Json.createObjectBuilder().add("versions", result).build();
     }
-    
+
     private JsonArrayBuilder getArrayBuilder(String[] values) {
         JsonArrayBuilder builder = Json.createArrayBuilder();
-        
+
         for (String value : values) {
             builder.add(value);
         }
-        
+
         return builder;
     }
-    
+
     private JsonArrayBuilder getArrayBuilder(Collection<String> values) {
         JsonArrayBuilder builder = Json.createArrayBuilder();
-        
+
         for (String value : values) {
             builder.add(value);
         }
-        
+
         return builder;
     }
 
@@ -181,7 +181,7 @@ public class VersionInfoServlet extends SlingSafeMethodsServlet {
     }
 
     /** True if our request has the given selector */
-    private boolean hasSelector(SlingHttpServletRequest req, String selectorToCheck) {
+    private boolean hasSelector(SlingJakartaHttpServletRequest req, String selectorToCheck) {
         for (String selector : req.getRequestPathInfo().getSelectors()) {
             if (selectorToCheck.equals(selector)) {
                 return true;

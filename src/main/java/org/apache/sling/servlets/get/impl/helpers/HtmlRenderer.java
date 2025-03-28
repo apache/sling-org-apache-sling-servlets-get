@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.SlingConstants;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.SlingJakartaHttpServletRequest;
+import org.apache.sling.api.SlingJakartaHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
@@ -38,8 +38,8 @@ public class HtmlRenderer implements Renderer  {
 
     public static final HtmlRenderer INSTANCE = new HtmlRenderer();
 
-    public void render(final SlingHttpServletRequest req,
-            final SlingHttpServletResponse resp) throws IOException {
+    public void render(final SlingJakartaHttpServletRequest req,
+            final SlingJakartaHttpServletResponse resp) throws IOException {
         final Resource r = req.getResource();
 
         if (ResourceUtil.isNonExistingResource(r)) {
@@ -51,7 +51,7 @@ public class HtmlRenderer implements Renderer  {
 
         final PrintWriter pw = resp.getWriter();
 
-        final boolean isIncluded = req.getAttribute(SlingConstants.ATTR_REQUEST_SERVLET) != null;
+        final boolean isIncluded = req.getAttribute(SlingConstants.ATTR_REQUEST_JAKARTA_SERVLET) != null;
 
         @SuppressWarnings({ "rawtypes" })
         final Map map = r.adaptTo(Map.class);
