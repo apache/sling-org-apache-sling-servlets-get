@@ -1,18 +1,20 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.servlets.get.impl.helpers;
 
@@ -21,7 +23,6 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.SlingJakartaHttpServletRequest;
 import org.apache.sling.api.SlingJakartaHttpServletResponse;
@@ -34,12 +35,12 @@ import org.owasp.encoder.Encode;
  * The <code>HtmlRendererServlet</code> renders the current resource in HTML
  * on behalf of the {@link org.apache.sling.servlets.get.impl.DefaultGetServlet}.
  */
-public class HtmlRenderer implements Renderer  {
+public class HtmlRenderer implements Renderer {
 
     public static final HtmlRenderer INSTANCE = new HtmlRenderer();
 
-    public void render(final SlingJakartaHttpServletRequest req,
-            final SlingJakartaHttpServletResponse resp) throws IOException {
+    public void render(final SlingJakartaHttpServletRequest req, final SlingJakartaHttpServletResponse resp)
+            throws IOException {
         final Resource r = req.getResource();
 
         if (ResourceUtil.isNonExistingResource(r)) {
@@ -53,32 +54,32 @@ public class HtmlRenderer implements Renderer  {
 
         final boolean isIncluded = req.getAttribute(SlingConstants.ATTR_REQUEST_JAKARTA_SERVLET) != null;
 
-        @SuppressWarnings({ "rawtypes" })
+        @SuppressWarnings({"rawtypes"})
         final Map map = r.adaptTo(Map.class);
-        if ( map != null ) {
+        if (map != null) {
             printProlog(pw, isIncluded);
             printResourceInfo(pw, r);
             render(pw, r, map);
             printEpilog(pw, isIncluded);
-        } else if ( r.adaptTo(String.class) != null ) {
+        } else if (r.adaptTo(String.class) != null) {
             printProlog(pw, isIncluded);
             printResourceInfo(pw, r);
             render(pw, r, r.adaptTo(String.class));
             printEpilog(pw, isIncluded);
-        } else if ( r.adaptTo(String[].class) != null ) {
+        } else if (r.adaptTo(String[].class) != null) {
             printProlog(pw, isIncluded);
             printResourceInfo(pw, r);
             render(pw, r, r.adaptTo(String[].class));
             printEpilog(pw, isIncluded);
         } else {
-            if ( !isIncluded ) {
+            if (!isIncluded) {
                 resp.setStatus(HttpServletResponse.SC_NO_CONTENT); // NO Content
             }
         }
     }
 
     private void printProlog(final PrintWriter pw, final boolean isIncluded) {
-        if ( !isIncluded ) {
+        if (!isIncluded) {
             pw.println("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             pw.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"");
             pw.println("    \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">");
@@ -89,7 +90,7 @@ public class HtmlRenderer implements Renderer  {
     }
 
     private void printEpilog(final PrintWriter pw, final boolean isIncluded) {
-        if ( !isIncluded ) {
+        if (!isIncluded) {
             pw.println("</body></html>");
         }
     }
@@ -124,7 +125,7 @@ public class HtmlRenderer implements Renderer  {
     private void render(final PrintWriter pw, final Resource r, final Map<?, ?> map) {
         pw.println("<h2>Resource properties</h2>");
         pw.println("<p>");
-        for(final Map.Entry p : map.entrySet()) {
+        for (final Map.Entry p : map.entrySet()) {
             printPropertyValue(pw, p.getKey().toString(), p.getValue());
             pw.println();
         }
@@ -146,8 +147,8 @@ public class HtmlRenderer implements Renderer  {
         pw.print(Encode.forHtmlContent(name));
         pw.print(": <b>");
 
-        if ( value.getClass().isArray() ) {
-            Object[] values = (Object[])value;
+        if (value.getClass().isArray()) {
+            Object[] values = (Object[]) value;
             pw.print('[');
             for (int i = 0; i < values.length; i++) {
                 if (i > 0) {
@@ -162,5 +163,4 @@ public class HtmlRenderer implements Renderer  {
 
         pw.print("</b><br />");
     }
-
 }

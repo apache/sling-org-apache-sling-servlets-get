@@ -18,20 +18,19 @@
  */
 package org.apache.sling.servlets.get.impl.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.json.JsonValue.ValueType;
-
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class JsonObjectCreatorTest {
 
@@ -46,7 +45,8 @@ public class JsonObjectCreatorTest {
         return joc.create().build().get("v");
     }
 
-    @Test public void testBoolean() {
+    @Test
+    public void testBoolean() {
         final JsonValue t = createJsonValue(Boolean.TRUE);
         assertEquals(JsonValue.TRUE, t);
 
@@ -54,7 +54,8 @@ public class JsonObjectCreatorTest {
         assertEquals(JsonValue.FALSE, f);
     }
 
-    @Test public void testBooleanArray() {
+    @Test
+    public void testBooleanArray() {
         final JsonValue t = createJsonValue(new boolean[] {true, false, true});
         assertEquals(ValueType.ARRAY, t.getValueType());
         assertEquals(3, t.asJsonArray().size());
@@ -63,16 +64,17 @@ public class JsonObjectCreatorTest {
         assertEquals(JsonValue.TRUE, t.asJsonArray().get(2));
     }
 
-    @Test public void testNull() {
+    @Test
+    public void testNull() {
         final JsonValue t = createJsonValue(null);
         assertNull(t);
     }
 
-    @Test public void testNullInArray() {
+    @Test
+    public void testNullInArray() {
         final JsonValue t = createJsonValue(new String[] {null});
         assertEquals(ValueType.ARRAY, t.getValueType());
         assertEquals(1, t.asJsonArray().size());
-        assertEquals("", ((JsonString)t.asJsonArray().get(0)).getString());
+        assertEquals("", ((JsonString) t.asJsonArray().get(0)).getString());
     }
-
 }

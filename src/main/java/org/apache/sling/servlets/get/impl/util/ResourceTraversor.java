@@ -27,12 +27,10 @@ import java.util.Map;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-
 import org.apache.sling.api.request.RecursionTooDeepException;
 import org.apache.sling.api.resource.Resource;
 
-public class ResourceTraversor
-{
+public class ResourceTraversor {
     Map<Resource, List<Resource>> tree = new HashMap<>();
 
     private long count;
@@ -49,7 +47,7 @@ public class ResourceTraversor
 
     private final Resource startResource;
 
-	private boolean ecmaSupport;
+    private boolean ecmaSupport;
 
     /** Create a ResourceTraversor, optionally limiting recursion and total number of resources
      * @param levels recursion levels limit, -1 means no limit
@@ -90,12 +88,11 @@ public class ResourceTraversor
         if (maxRecursionLevels == -1 || currentLevel < maxRecursionLevels) {
             final Iterator<Resource> children = resource.listChildren();
             List<Resource> childTree = tree.get(resource);
-            if (childTree == null)
-            {
+            if (childTree == null) {
                 childTree = new ArrayList<>();
                 tree.put(resource, childTree);
             }
-            
+
             while (children.hasNext()) {
                 count++;
                 final Resource child = children.next();
@@ -121,7 +118,7 @@ public class ResourceTraversor
                 nextQueue = new LinkedList<>();
             }
             final int maxLevel = collectChildren(currentQueue.removeFirst(), currentLevel);
-            if ( maxLevel != -1 ) {
+            if (maxLevel != -1) {
                 return maxLevel;
             }
         }
@@ -136,19 +133,18 @@ public class ResourceTraversor
      * @throws JSONException
      */
     private JsonObjectBuilder adapt(final Resource resource) {
-        return new JsonObjectCreator(resource,ecmaSupport).create();
+        return new JsonObjectCreator(resource, ecmaSupport).create();
     }
 
     public JsonObject getJSONObject() {
-        return addChildren(startResource,startObject).build();
+        return addChildren(startResource, startObject).build();
     }
 
-    private JsonObjectBuilder addChildren(Resource resource,JsonObjectBuilder builder) {
-    	List<Resource> children = tree.get(resource);
-    	
-        if (children != null)
-        {
-        	for (Resource child:children) {
+    private JsonObjectBuilder addChildren(Resource resource, JsonObjectBuilder builder) {
+        List<Resource> children = tree.get(resource);
+
+        if (children != null) {
+            for (Resource child : children) {
                 builder.add(child.getName(), addChildren(child, adapt(child)));
             }
         }

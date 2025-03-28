@@ -28,10 +28,9 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
 
-public class JsonToText
-{
+public class JsonToText {
     /** Rendering options */
-    static public class Options {
+    public static class Options {
         int indent;
         private boolean indentIsPositive;
         int initialIndent;
@@ -44,8 +43,7 @@ public class JsonToText
         String childNameKey = DEFAULT_CHILD_NAME_KEY;
 
         /** Clients use JSONRenderer.options() to create objects */
-        private Options() {
-        }
+        private Options() {}
 
         Options(Options opt) {
             this.indent = opt.indent;
@@ -92,7 +90,7 @@ public class JsonToText
 
     /** Write N spaces to sb for indentation */
     private void indent(StringBuilder sb, int howMuch) {
-        for (int i=0; i < howMuch; i++) {
+        for (int i = 0; i < howMuch; i++) {
             sb.append(' ');
         }
     }
@@ -103,12 +101,12 @@ public class JsonToText
             return "\"\"";
         }
 
-        char          b;
-        char          c = 0;
-        int           i;
-        int           len = string.length();
+        char b;
+        char c = 0;
+        int i;
+        int len = string.length();
         StringBuilder sb = new StringBuilder(len + 2);
-        String        t;
+        String t;
 
         sb.append('"');
         for (i = 0; i < len; i += 1) {
@@ -142,8 +140,7 @@ public class JsonToText
                     sb.append("\\r");
                     break;
                 default:
-                    if (c < ' ' || (c >= '\u0080' && c < '\u00a0') ||
-                            (c >= '\u2000' && c < '\u2100')) {
+                    if (c < ' ' || (c >= '\u0080' && c < '\u00a0') || (c >= '\u2000' && c < '\u2100')) {
                         t = "000" + Integer.toHexString(c);
                         sb.append("\\u").append(t.substring(t.length() - 4));
                     } else {
@@ -155,22 +152,20 @@ public class JsonToText
         return sb.toString();
     }
 
-
-
     /** Make a JSON String of an Object value, with rendering options
      */
     private String valueToString(JsonValue value, Options opt) {
         if (value instanceof JsonObject) {
-            return prettyPrint((JsonObject)value, opt);
+            return prettyPrint((JsonObject) value, opt);
         } else if (value instanceof JsonArray) {
-            return prettyPrint((JsonArray)value, opt);
+            return prettyPrint((JsonArray) value, opt);
         }
         return value.toString();
     }
 
     /** Decide whether o must be skipped and added to a, when rendering a JSONObject */
-    private boolean skipChildObject(JsonArrayBuilder a, Options  opt, String key, Object value) {
-        if(opt.arraysForChildren && (value instanceof JsonObject)) {
+    private boolean skipChildObject(JsonArrayBuilder a, Options opt, String key, Object value) {
+        if (opt.arraysForChildren && (value instanceof JsonObject)) {
             JsonObjectBuilder builder = Json.createObjectBuilder();
             builder.add(opt.childNameKey, key);
             for (Map.Entry<String, JsonValue> entry : ((JsonObject) value).entrySet()) {
@@ -205,7 +200,7 @@ public class JsonToText
         if (n == 1) {
             o = keys.next();
             final JsonValue v = jo.get(o);
-            if(!skipChildObject(children, opt, o, v)) {
+            if (!skipChildObject(children, opt, o, v)) {
                 sb.append(quote(o));
                 sb.append(": ");
                 sb.append(valueToString(v, opt));
@@ -214,7 +209,7 @@ public class JsonToText
             while (keys.hasNext()) {
                 o = keys.next();
                 final JsonValue v = jo.get(o);
-                if(skipChildObject(children, opt, o, v)) {
+                if (skipChildObject(children, opt, o, v)) {
                     continue;
                 }
                 if (sb.length() > 1) {
@@ -225,8 +220,7 @@ public class JsonToText
                 indent(sb, newindent);
                 sb.append(quote(o.toString()));
                 sb.append(": ");
-                sb.append(valueToString(v,
-                        options().withIndent(opt.indent).withInitialIndent(newindent)));
+                sb.append(valueToString(v, options().withIndent(opt.indent).withInitialIndent(newindent)));
             }
             if (sb.length() > 1) {
                 sb.append('\n');
@@ -236,7 +230,7 @@ public class JsonToText
 
         /** Render children if any were skipped (in "children in arrays" mode) */
         JsonArray childrenArray = children.build();
-        if(childrenArray.size() > 0) {
+        if (childrenArray.size() > 0) {
             if (sb.length() > 1) {
                 sb.append(",\n");
             } else {
@@ -265,20 +259,20 @@ public class JsonToText
             sb.append(valueToString(ja.get(0), opt));
         } else {
             final int newindent = opt.initialIndent + opt.indent;
-            if(opt.hasIndent()) {
+            if (opt.hasIndent()) {
                 sb.append('\n');
             }
             for (i = 0; i < len; i += 1) {
                 if (i > 0) {
                     sb.append(',');
-                    if(opt.hasIndent()) {
+                    if (opt.hasIndent()) {
                         sb.append('\n');
                     }
                 }
                 indent(sb, newindent);
                 sb.append(valueToString(ja.get(i), opt));
             }
-            if(opt.hasIndent()) {
+            if (opt.hasIndent()) {
                 sb.append('\n');
             }
             indent(sb, opt.initialIndent);
@@ -286,5 +280,4 @@ public class JsonToText
         sb.append(']');
         return sb.toString();
     }
-
 }

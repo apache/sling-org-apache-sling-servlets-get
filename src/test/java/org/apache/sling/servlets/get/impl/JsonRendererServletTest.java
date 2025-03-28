@@ -18,8 +18,6 @@
  */
 package org.apache.sling.servlets.get.impl;
 
-import static org.junit.Assert.assertEquals;
-
 import org.apache.sling.api.SlingJakartaHttpServletRequest;
 import org.apache.sling.api.request.builder.Builders;
 import org.apache.sling.api.request.builder.SlingJakartaHttpServletResponseResult;
@@ -27,6 +25,8 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.servlets.get.impl.helpers.JsonRenderer;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
 import org.junit.Rule;
+
+import static org.junit.Assert.assertEquals;
 
 public class JsonRendererServletTest {
 
@@ -74,14 +74,15 @@ public class JsonRendererServletTest {
     }
 
     private String getJSON(String path, String depth) throws Throwable {
-        SlingJakartaHttpServletRequest request = Builders
-            .newRequestBuilder(context.resourceResolver().getResource(path))
-            .withExtension("json")
-            .withSelectors(depth)
-            .withRequestMethod("GET")
-            .buildJakartaRequest();
+        SlingJakartaHttpServletRequest request = Builders.newRequestBuilder(
+                        context.resourceResolver().getResource(path))
+                .withExtension("json")
+                .withSelectors(depth)
+                .withRequestMethod("GET")
+                .buildJakartaRequest();
 
-        SlingJakartaHttpServletResponseResult response = Builders.newResponseBuilder().buildJakartaResponseResult();
+        SlingJakartaHttpServletResponseResult response =
+                Builders.newResponseBuilder().buildJakartaResponseResult();
         JsonRenderer renderer = new JsonRenderer(1000, true);
         renderer.render(request, response);
         return response.getOutputAsString();

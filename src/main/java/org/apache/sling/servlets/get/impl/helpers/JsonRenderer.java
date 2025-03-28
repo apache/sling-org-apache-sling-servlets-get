@@ -1,18 +1,20 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.servlets.get.impl.helpers;
 
@@ -23,7 +25,6 @@ import java.math.BigInteger;
 import jakarta.json.Json;
 import jakarta.json.stream.JsonGenerator;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingJakartaHttpServletRequest;
 import org.apache.sling.api.SlingJakartaHttpServletResponse;
@@ -61,15 +62,14 @@ public class JsonRenderer implements Renderer {
 
     private final JsonToText renderer = new JsonToText();
 
-	private boolean ecmaSupport;
+    private boolean ecmaSupport;
 
     public JsonRenderer(long maximumResults, boolean ecmaSupport) {
         this.maximumResults = maximumResults;
         this.ecmaSupport = ecmaSupport;
     }
 
-    public void render(SlingJakartaHttpServletRequest req,
-            SlingJakartaHttpServletResponse resp) throws IOException {
+    public void render(SlingJakartaHttpServletRequest req, SlingJakartaHttpServletResponse resp) throws IOException {
         // Access and check our data
         final Resource r = req.getResource();
         if (ResourceUtil.isNonExistingResource(r)) {
@@ -79,7 +79,7 @@ public class JsonRenderer implements Renderer {
         int maxRecursionLevels = 0;
         try {
             maxRecursionLevels = getMaxRecursionLevel(req);
-        } catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.getMessage());
             return;
         }
@@ -96,7 +96,7 @@ public class JsonRenderer implements Renderer {
         try {
             traversor = new ResourceTraversor(maxRecursionLevels, maximumResults, r, ecmaSupport);
             allowedLevel = traversor.collectResources();
-            if ( allowedLevel != -1 ) {
+            if (allowedLevel != -1) {
                 allowDump = false;
             }
         } catch (final Exception e) {
@@ -115,7 +115,7 @@ public class JsonRenderer implements Renderer {
                     // backwards compatibility. Output might be slightly different
                     // with prettyPrint and no options
                     StringWriter writer = new StringWriter();
-                    try (JsonGenerator json = Json.createGenerator(writer)){
+                    try (JsonGenerator json = Json.createGenerator(writer)) {
                         json.write(traversor.getJSONObject());
                     }
                     resp.getWriter().write(writer.toString());
@@ -155,7 +155,7 @@ public class JsonRenderer implements Renderer {
         final String[] selectors = req.getRequestPathInfo().getSelectors();
         if (selectors != null && selectors.length > 0) {
             final String level = selectors[selectors.length - 1];
-            if(!TIDY.equals(level) && !HARRAY.equals(level)) {
+            if (!TIDY.equals(level) && !HARRAY.equals(level)) {
                 if (INFINITY.equals(level)) {
                     maxRecursionLevels = -1;
                 } else {
@@ -200,8 +200,8 @@ public class JsonRenderer implements Renderer {
      * @return {@code true} if the selector is present, {@code false} otherwise
      */
     protected boolean hasSelector(SlingJakartaHttpServletRequest req, String selectorToCheck) {
-        for(String selector : req.getRequestPathInfo().getSelectors()) {
-            if(selectorToCheck.equals(selector)) {
+        for (String selector : req.getRequestPathInfo().getSelectors()) {
+            if (selectorToCheck.equals(selector)) {
                 return true;
             }
         }
@@ -226,4 +226,3 @@ public class JsonRenderer implements Renderer {
         throw new SlingException(e.toString(), e);
     }
 }
-

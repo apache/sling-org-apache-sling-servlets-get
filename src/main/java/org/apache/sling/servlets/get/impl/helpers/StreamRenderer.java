@@ -1,24 +1,22 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.servlets.get.impl.helpers;
-
-import static jakarta.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
-import static org.apache.sling.api.servlets.HttpConstants.HEADER_IF_MODIFIED_SINCE;
-import static org.apache.sling.api.servlets.HttpConstants.HEADER_LAST_MODIFIED;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -36,7 +34,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.SlingJakartaHttpServletRequest;
@@ -53,6 +50,10 @@ import org.apache.sling.api.servlets.HttpConstants;
 import org.apache.sling.servlets.get.impl.DefaultGetServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
+import static org.apache.sling.api.servlets.HttpConstants.HEADER_IF_MODIFIED_SINCE;
+import static org.apache.sling.api.servlets.HttpConstants.HEADER_LAST_MODIFIED;
 
 /**
  * The <code>StreamRendererServlet</code> streams the current resource to the
@@ -91,16 +92,16 @@ public class StreamRenderer implements Renderer {
 
     private String[] indexFiles;
 
-	private ServletContext context;
+    private ServletContext context;
 
-    public StreamRenderer(boolean index, String[] indexFiles,ServletContext context) {
+    public StreamRenderer(boolean index, String[] indexFiles, ServletContext context) {
         this.index = index;
         this.indexFiles = indexFiles;
         this.context = context;
     }
 
-    public void render(SlingJakartaHttpServletRequest request,
-            SlingJakartaHttpServletResponse response) throws IOException {
+    public void render(SlingJakartaHttpServletRequest request, SlingJakartaHttpServletResponse response)
+            throws IOException {
 
         // whether this servlet is called as of a request include
         final boolean included = request.getAttribute(SlingConstants.ATTR_REQUEST_JAKARTA_SERVLET) != null;
@@ -108,12 +109,9 @@ public class StreamRenderer implements Renderer {
         // ensure no extension or "res"
         String ext = request.getRequestPathInfo().getExtension();
         if (ext != null && !ext.equals(DefaultGetServlet.EXT_RES)) {
-            request.getRequestProgressTracker().log(
-                "StreamRendererServlet does not support for extension " + ext);
+            request.getRequestProgressTracker().log("StreamRendererServlet does not support for extension " + ext);
             if (included || response.isCommitted()) {
-                log.error(
-                    "StreamRendererServlet does not support extension {}",
-                    ext);
+                log.error("StreamRendererServlet does not support extension {}", ext);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
@@ -148,15 +146,16 @@ public class StreamRenderer implements Renderer {
             final String actualResourcePath = vm.get(JcrConstants.JCR_CONTENT, String.class);
             resource = request.getResourceResolver().getResource(actualResourcePath);
             if (resource == null) {
-                log.warn("Path {} does not exist",actualResourcePath);
+                log.warn("Path {} does not exist", actualResourcePath);
                 return;
             }
         }
 
         try (InputStream stream = resource.adaptTo(InputStream.class)) {
             if (stream != null) {
-                if ( stream instanceof ExternalizableInputStream) {
-                    response.sendRedirect(((ExternalizableInputStream)stream).getURI().toString());
+                if (stream instanceof ExternalizableInputStream) {
+                    response.sendRedirect(
+                            ((ExternalizableInputStream) stream).getURI().toString());
                     return;
                 }
                 if (isHeadRequest(request)) {
@@ -173,29 +172,28 @@ public class StreamRenderer implements Renderer {
 
                     renderDirectory(request, response, included);
 
-                } else if (included || response.isCommitted() ) {
+                } else if (included || response.isCommitted()) {
 
                     // request is included or committed, not redirecting
-                    request.getRequestProgressTracker().log(
-                        "StreamRendererServlet: Not redirecting with trailing slash, response is committed or request included");
-                    log.warn("StreamRendererServlet: Not redirecting with trailing slash, response is committed or request included");
+                    request.getRequestProgressTracker()
+                            .log(
+                                    "StreamRendererServlet: Not redirecting with trailing slash, response is committed or request included");
+                    log.warn(
+                            "StreamRendererServlet: Not redirecting with trailing slash, response is committed or request included");
 
                 } else {
 
                     // redirect to this with trailing slash to render the index
-                    String url = request.getResourceResolver().map(request,
-                        resource.getPath())
-                        + "/";
+                    String url = request.getResourceResolver().map(request, resource.getPath()) + "/";
                     response.sendRedirect(url);
-
                 }
             }
         }
     }
 
     private boolean isRootResourceRequest(Resource resource) {
-        return ("/".equals(resource.getPath())) ||
-            ("/".equals(resource.getResourceResolver().map(resource.getPath())));
+        return ("/".equals(resource.getPath()))
+                || ("/".equals(resource.getResourceResolver().map(resource.getPath())));
     }
 
     private boolean isHeadRequest(HttpServletRequest request) {
@@ -224,10 +222,13 @@ public class StreamRenderer implements Renderer {
         return false;
     }
 
-    private void streamResource(final Resource resource,
-            final InputStream stream, final boolean included,
+    private void streamResource(
+            final Resource resource,
+            final InputStream stream,
+            final boolean included,
             final SlingJakartaHttpServletRequest request,
-            final SlingJakartaHttpServletResponse response) throws IOException {
+            final SlingJakartaHttpServletResponse response)
+            throws IOException {
         // finally stream the resource
 
         final ArrayList<Range> ranges;
@@ -237,8 +238,7 @@ public class StreamRenderer implements Renderer {
 
         } else {
             // parse optional ranges
-            ranges = parseRange(request, response,
-                    resource.getResourceMetadata());
+            ranges = parseRange(request, response, resource.getResourceMetadata());
             if (ranges == null) {
                 // there was something wrong, the parseRange has sent a
                 // response and we are done
@@ -253,8 +253,7 @@ public class StreamRenderer implements Renderer {
 
         if (ranges == FULL) {
             // return full resource
-            setContentLength(response,
-                    resource.getResourceMetadata().getContentLength());
+            setContentLength(response, resource.getResourceMetadata().getContentLength());
             byte[] buf = new byte[IO_BUFFER_SIZE];
             int rd;
             while ((rd = stream.read(buf)) >= 0) {
@@ -266,29 +265,28 @@ public class StreamRenderer implements Renderer {
 
             if (ranges.size() == 1) {
                 Range range = ranges.get(0);
-                response.addHeader("Content-Range", "bytes " + range.start
-                        + "-" + range.end + "/" + range.length);
+                response.addHeader("Content-Range", "bytes " + range.start + "-" + range.end + "/" + range.length);
                 setContentLength(response, range.end - range.start + 1);
                 copy(stream, out, range);
             } else {
 
-                response.setContentType("multipart/byteranges; boundary="
-                        + mimeSeparation);
+                response.setContentType("multipart/byteranges; boundary=" + mimeSeparation);
 
                 copy(resource, out, ranges.iterator());
             }
-
         }
     }
 
-    private void renderDirectory(final SlingJakartaHttpServletRequest request,
-            final SlingJakartaHttpServletResponse response, final boolean included)
+    private void renderDirectory(
+            final SlingJakartaHttpServletRequest request,
+            final SlingJakartaHttpServletResponse response,
+            final boolean included)
             throws IOException {
 
         // request is included or committed, not rendering index
         if (included || response.isCommitted()) {
-            request.getRequestProgressTracker().log(
-                "StreamRendererServlet: Not rendering index, response is committed or request included");
+            request.getRequestProgressTracker()
+                    .log("StreamRendererServlet: Not rendering index, response is committed or request included");
             log.warn("StreamRendererServlet: Not rendering index, response is committed or request included");
             return;
         }
@@ -321,10 +319,10 @@ public class StreamRenderer implements Renderer {
                 }
 
                 try {
-					dispatcher.include(request, response);
-				} catch (ServletException e) {
-					throw new IOException(e);
-				}
+                    dispatcher.include(request, response);
+                } catch (ServletException e) {
+                    throw new IOException(e);
+                }
                 return;
             }
         }
@@ -338,15 +336,13 @@ public class StreamRenderer implements Renderer {
         } else {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
         }
-
     }
 
     /**
      * @param resource
      * @param response
      */
-    private void setHeaders(Resource resource,
-            SlingJakartaHttpServletResponse response) {
+    private void setHeaders(Resource resource, SlingJakartaHttpServletResponse response) {
 
         final ResourceMetadata meta = resource.getResourceMetadata();
         final long modifTime = meta.getModificationTime();
@@ -361,8 +357,7 @@ public class StreamRenderer implements Renderer {
             // provides the
             // default one,
             // try to do better using our servlet context
-            final String ct = context.getMimeType(
-                resource.getPath());
+            final String ct = context.getMimeType(resource.getPath());
             if (ct != null) {
                 contentType = ct;
             }
@@ -406,8 +401,7 @@ public class StreamRenderer implements Renderer {
         }
     }
 
-    private void renderIndex(Resource resource,
-            SlingJakartaHttpServletResponse response) throws IOException {
+    private void renderIndex(Resource resource, SlingJakartaHttpServletResponse response) throws IOException {
 
         response.setContentType("text/html");
         response.setCharacterEncoding("UTF-8");
@@ -429,7 +423,8 @@ public class StreamRenderer implements Renderer {
         pw.println("<hr>");
 
         if (!"/".equals(path)) {
-            pw.println("<a href='../'>../</a>                                                                 -     Parent");
+            pw.println(
+                    "<a href='../'>../</a>                                                                 -     Parent");
         }
 
         // render the children
@@ -441,7 +436,6 @@ public class StreamRenderer implements Renderer {
         pw.println("</pre>");
         pw.println("</body>");
         pw.println("</html>");
-
     }
 
     private void renderChild(PrintWriter pw, Resource resource) {
@@ -462,8 +456,7 @@ public class StreamRenderer implements Renderer {
             displayName = displayName.substring(0, 29) + "...";
             suffix = "";
         } else {
-            suffix = "                                               ".substring(
-                0, 32 - displayName.length());
+            suffix = "                                               ".substring(0, 32 - displayName.length());
         }
         pw.printf("<a href='%s'>%s</a>%s", name, displayName, suffix);
 
@@ -481,7 +474,7 @@ public class StreamRenderer implements Renderer {
         pw.println();
     }
 
-    //---------- Range header support
+    // ---------- Range header support
     // The following code is copy-derived from the Tomcate DefaultServlet
     // http://svn.apache.org/viewvc/tomcat/trunk/java/org/apache/catalina/servlets/DefaultServlet.java?view=markup
 
@@ -496,8 +489,7 @@ public class StreamRenderer implements Renderer {
      * @param ranges Iterator of the ranges the client wanted to retrieve
      * @exception IOException if an input/output error occurs
      */
-    private void copy(Resource resource, ServletOutputStream ostream,
-            Iterator<Range> ranges) throws IOException {
+    private void copy(Resource resource, ServletOutputStream ostream, Iterator<Range> ranges) throws IOException {
 
         String contentType = resource.getResourceMetadata().getContentType();
         IOException exception = null;
@@ -506,8 +498,7 @@ public class StreamRenderer implements Renderer {
 
             InputStream resourceInputStream = resource.adaptTo(InputStream.class);
 
-            try (InputStream istream = new BufferedInputStream(resourceInputStream,
-                    IO_BUFFER_SIZE)) {
+            try (InputStream istream = new BufferedInputStream(resourceInputStream, IO_BUFFER_SIZE)) {
                 Range currentRange = ranges.next();
 
                 // Writing MIME header.
@@ -516,14 +507,14 @@ public class StreamRenderer implements Renderer {
                 if (contentType != null) {
                     ostream.println("Content-Type: " + contentType);
                 }
-                ostream.println("Content-Range: bytes " + currentRange.start + "-"
-                    + currentRange.end + "/" + currentRange.length);
+                ostream.println("Content-Range: bytes " + currentRange.start + "-" + currentRange.end + "/"
+                        + currentRange.length);
                 ostream.println();
 
                 // Copy content
                 try {
                     copy(istream, ostream, currentRange);
-                } catch(IOException e) {
+                } catch (IOException e) {
                     exception = e;
                 }
             }
@@ -532,22 +523,21 @@ public class StreamRenderer implements Renderer {
         ostream.println();
         ostream.print("--" + mimeSeparation + "--");
 
-        if(exception != null) {
+        if (exception != null) {
             throw exception;
         }
     }
 
     /**
-    * Copy the contents of the specified input stream to the specified
-    * output stream.
-    *
-    * @param istream The input stream to read from
-    * @param ostream The output stream to write to
-    * @param range Range the client wanted to retrieve
-    * @exception IOException if an input/output error occurs
-    */
-    private void copy(InputStream istream, OutputStream ostream,
-            Range range) throws IOException {
+     * Copy the contents of the specified input stream to the specified
+     * output stream.
+     *
+     * @param istream The input stream to read from
+     * @param ostream The output stream to write to
+     * @param range Range the client wanted to retrieve
+     * @exception IOException if an input/output error occurs
+     */
+    private void copy(InputStream istream, OutputStream ostream, Range range) throws IOException {
         // HTTP Range 0-9 means "byte 9 included"
         final long endIndex = range.end + 1;
         log.debug("copy: Serving bytes: {}-{}", range.start, endIndex);
@@ -555,8 +545,7 @@ public class StreamRenderer implements Renderer {
     }
 
     // static, package-private method to make unit testing easier
-    static void staticCopyRange(InputStream istream,
-            OutputStream ostream, long start, long end) throws IOException {
+    static void staticCopyRange(InputStream istream, OutputStream ostream, long start, long end) throws IOException {
         long position = 0;
         byte buffer[] = new byte[IO_BUFFER_SIZE];
 
@@ -569,8 +558,7 @@ public class StreamRenderer implements Renderer {
                 int len = (int) Math.min(start - position, buffer.length);
                 skipped = istream.read(buffer, 0, len);
                 if (skipped == -1) {
-                    throw new IOException("Failed to skip " + start
-                            + " bytes; only skipped " + position + " bytes");
+                    throw new IOException("Failed to skip " + start + " bytes; only skipped " + position + " bytes");
                 }
             }
             position += skipped;
@@ -598,9 +586,8 @@ public class StreamRenderer implements Renderer {
      *         an error occurred parsing the header and the request has been
      *         finished sending an error status.
      */
-    private ArrayList<Range> parseRange(HttpServletRequest request,
-            HttpServletResponse response, ResourceMetadata metadata)
-            throws IOException {
+    private ArrayList<Range> parseRange(
+            HttpServletRequest request, HttpServletResponse response, ResourceMetadata metadata) throws IOException {
 
         // Checking If-Range
         String headerValue = request.getHeader("If-Range");
@@ -626,9 +613,7 @@ public class StreamRenderer implements Renderer {
                 // the last modification date of the entity, the entire entity
                 // is returned.
                 return FULL;
-
             }
-
         }
 
         long fileLength = metadata.getContentLength();
@@ -684,18 +669,15 @@ public class StreamRenderer implements Renderer {
             } else {
 
                 try {
-                    currentRange.start = Long.parseLong(rangeDefinition.substring(
-                        0, dashPos));
+                    currentRange.start = Long.parseLong(rangeDefinition.substring(0, dashPos));
                     if (dashPos < rangeDefinition.length() - 1)
-                        currentRange.end = Long.parseLong(rangeDefinition.substring(
-                            dashPos + 1, rangeDefinition.length()));
-                    else
-                        currentRange.end = fileLength - 1;
+                        currentRange.end =
+                                Long.parseLong(rangeDefinition.substring(dashPos + 1, rangeDefinition.length()));
+                    else currentRange.end = fileLength - 1;
                 } catch (NumberFormatException e) {
                     failParseRange(response, fileLength, rangeHeader);
                     return null;
                 }
-
             }
 
             if (!currentRange.validate()) {
@@ -713,10 +695,9 @@ public class StreamRenderer implements Renderer {
      * Sends a 416 error response to the client if the Range header is
      * not acceptable
      */
-    private void failParseRange(final HttpServletResponse response,
-            final long fileLength, final String rangeHeader) throws IOException {
-        log.error("parseRange: Cannot support range {}; sending 416",
-            rangeHeader);
+    private void failParseRange(final HttpServletResponse response, final long fileLength, final String rangeHeader)
+            throws IOException {
+        log.error("parseRange: Cannot support range {}; sending 416", rangeHeader);
         response.addHeader("Content-Range", "bytes */" + fileLength);
         response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
     }
@@ -740,6 +721,5 @@ public class StreamRenderer implements Renderer {
             if (end >= length) end = length - 1;
             return ((start >= 0) && (end >= 0) && (start <= end) && (length > 0));
         }
-
     }
 }
