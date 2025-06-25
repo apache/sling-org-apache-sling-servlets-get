@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>org.apache.sling.servlets.get</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1-SNAPSHOT</version>
 
     <name>Apache Sling Default GET Servlets</name>
     <description>Provides default GET servlets for HTML, Text and JSON rendering
@@ -37,7 +37,7 @@
     <scm>
         <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-servlets-get.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-servlets-get.git</developerConnection>
-        <tag>org.apache.sling.servlets.get-3.0.0</tag>
+        <tag>HEAD</tag>
         <url>https://github.com/apache/sling-org-apache-sling-servlets-get.git</url>
     </scm>
 
