@@ -6,5 +6,77 @@
 
 This module is part of the [Apache Sling](https://sling.apache.org) project.
 
-Provides default GET servlets for HTML, Text and JSON rendering
-and streaming resources.
+This bundle provides Sling's default GET and HEAD servlet implementations for:
+
+- HTML rendering
+- Plain-text rendering
+- JSON rendering
+- XML rendering
+- Binary stream delivery
+- Redirect handling (`jcr:content` resources)
+- Sling runtime info and JCR version info endpoints
+
+## Requirements
+
+- Java 17
+- Maven 3.9+
+
+## Build and test
+
+```bash
+# Build shaded bundle and sources
+mvn clean package
+
+# Run unit/integration tests
+mvn test
+
+# Check or apply formatting (Spotless via sling-bundle-parent)
+mvn spotless:check
+mvn spotless:apply
+
+# Verify license headers
+mvn apache-rat:check
+
+# Install locally without tests
+mvn install -DskipTests
+```
+
+To deploy to a running Sling instance:
+
+```bash
+mvn sling:install
+```
+
+## Implementation notes
+
+- Uses OSGi R7 Declarative Services annotations (`org.osgi.service.component.annotations`).
+- Uses Jakarta Servlet (`jakarta.servlet`) and Jakarta JSON (`jakarta.json`) APIs.
+- Targets Sling API `3.x` (`SlingJakartaHttpServletRequest` / `SlingJakartaHttpServletResponse`).
+- Produces a shaded JAR at package time.
+- Relocates `org.apache.jackrabbit.util` to `org.apache.sling.servlets.get.impl.jackrabbit` and inlines `ISO8601`.
+- Keeps `javax.jcr` imports optional in `bnd.bnd` for environments without JCR packages.
+
+## Project layout
+
+```text
+pom.xml                    Maven build descriptor
+bnd.bnd                    OSGi import and resource instructions
+src/
+  main/java/org/apache/sling/servlets/get/impl/
+    DefaultGetServlet.java      Dispatcher for GET/HEAD by selector/extension
+    RedirectServlet.java        Redirect handling
+    SlingInfoServlet.java       Sling runtime info endpoint
+    VersionInfoServlet.java     JCR version info endpoint
+    helpers/
+      HtmlRenderer.java
+      JsonRenderer.java
+      PlainTextRenderer.java
+      XMLRenderer.java
+      StreamRenderer.java
+    util/
+      JsonObjectCreator.java
+      JsonToText.java
+      ResourceTraversor.java
+  test/java/...                 JUnit 4 + Mockito + Sling Mock tests
+  test/resources/               JSON fixtures
+```
