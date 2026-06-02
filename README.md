@@ -30,6 +30,12 @@ mvn clean package
 # Run unit/integration tests
 mvn test
 
+# Run a single test class
+mvn test -Dtest=JsonRendererServletTest
+
+# Run a single test method
+mvn test -Dtest=JsonRendererServletTest#testMethod
+
 # Check or apply formatting (Spotless via sling-bundle-parent)
 mvn spotless:check
 mvn spotless:apply
@@ -47,20 +53,30 @@ To deploy to a running Sling instance:
 mvn sling:install
 ```
 
+## Build artifacts
+
+- The package phase produces the deployable shaded bundle:
+  - `target/org.apache.sling.servlets.get-<version>.jar`
+- Original (pre-shade) artifacts are also generated:
+  - `target/original-org.apache.sling.servlets.get-<version>.jar`
+- Source JARs are generated for both shaded and original variants.
+
 ## Implementation notes
 
 - Uses OSGi R7 Declarative Services annotations (`org.osgi.service.component.annotations`).
+- Uses OSGi Metatype annotations (`org.osgi.service.metatype.annotations`) for servlet configuration.
 - Uses Jakarta Servlet (`jakarta.servlet`) and Jakarta JSON (`jakarta.json`) APIs.
 - Targets Sling API `3.x` (`SlingJakartaHttpServletRequest` / `SlingJakartaHttpServletResponse`).
 - Produces a shaded JAR at package time.
 - Relocates `org.apache.jackrabbit.util` to `org.apache.sling.servlets.get.impl.jackrabbit` and inlines `ISO8601`.
 - Keeps `javax.jcr` imports optional in `bnd.bnd` for environments without JCR packages.
+- Uses SLF4J (`org.slf4j`) for logging.
 
 ## Project layout
 
 ```text
 pom.xml                    Maven build descriptor
-bnd.bnd                    OSGi import and resource instructions
+bnd.bnd                    OSGi import and inlined resource instructions
 src/
   main/java/org/apache/sling/servlets/get/impl/
     DefaultGetServlet.java      Dispatcher for GET/HEAD by selector/extension
@@ -68,15 +84,17 @@ src/
     SlingInfoServlet.java       Sling runtime info endpoint
     VersionInfoServlet.java     JCR version info endpoint
     helpers/
+      Renderer.java
       HtmlRenderer.java
       JsonRenderer.java
       PlainTextRenderer.java
       XMLRenderer.java
       StreamRenderer.java
+      HeadServletResponse.java
     util/
       JsonObjectCreator.java
       JsonToText.java
       ResourceTraversor.java
   test/java/...                 JUnit 4 + Mockito + Sling Mock tests
-  test/resources/               JSON fixtures
+  test/resources/               JSON fixtures (for example `data.json`, `samplefile.json`)
 ```
