@@ -98,3 +98,10 @@ target/                         Build output — do not edit
 - **Sling API 3.x**: This bundle targets `org.apache.sling.api` 3.0.0, which uses `SlingJakartaHttpServletRequest`/`SlingJakartaHttpServletResponse`. These differ from the older `SlingHttpServletRequest` — don't mix them.
 - **Parent POM version drift**: Many dependency versions (JUnit, Mockito, OSGi annotations) are managed by `sling-bundle-parent`. Check the parent before adding explicit versions.
 - **RAT failures**: Adding files without license headers (e.g., test fixtures) will fail the RAT check. Add a RAT exclusion in the parent config or prepend the header.
+
+# Security
+
+<!-- sling-security-default:start -->
+The threat model for this project is https://github.com/apache/sling/blob/master/docs/threat-model.md .
+<!-- sling-security-default:end -->
+
