@@ -1,6 +1,6 @@
 # Project Overview
 
-This is `org.apache.sling.servlets.get`, an OSGi bundle that provides the default GET servlets for Apache Sling. It handles HTML, plain-text, JSON, and XML rendering of Sling resources, plus stream delivery, redirect handling, and Sling/version info endpoints. The bundle ships as a shaded JAR (via `maven-shade-plugin`) that inlines `ISO8601` from `jackrabbit-jcr-commons`. Requires Java 17.
+This is `org.apache.sling.servlets.get`, an OSGi bundle that provides the default GET servlets for Apache Sling. It handles HTML, plain-text, JSON, and XML rendering of Sling resources, plus stream delivery, redirect handling, and Sling/version info endpoints. The bundle ships as a shaded JAR (via `maven-shade-plugin`) that inlines `ISO8601` from `jackrabbit-jcr-commons`. Requires Java 17 and Maven 3.9+.
 
 # Core Commands
 
@@ -12,10 +12,10 @@ mvn clean package
 mvn test
 
 # Run a single test class
-mvn test -Dtest=JsonRendererTest
+mvn test -Dtest=JsonRendererServletTest
 
 # Run a single test method
-mvn test -Dtest=JsonRendererTest#testMethod
+mvn test -Dtest=JsonRendererServletTest#testMethod
 
 # Apply Spotless formatting (inherited from sling-bundle-parent)
 mvn spotless:apply
@@ -55,7 +55,7 @@ src/
       JsonObjectCreator.java    Converts Sling Resources → Jakarta JSON structures
       JsonToText.java           Formats JSON for text/plain rendering
       ResourceTraversor.java    Depth-limited resource tree walker
-  test/java/...                 Mirrors main package structure; JUnit 4 tests
+  test/java/...                 Mirrors main package structure; JUnit 4/Mockito/Sling Mock tests
   test/resources/               Test JSON fixtures (data.json, samplefile.json)
 target/                         Build output — do not edit
 ```
@@ -63,6 +63,7 @@ target/                         Build output — do not edit
 # Development Patterns & Constraints
 
 - **Java 17**, OSGi R7 component model using `org.osgi.service.component.annotations` (`@Component`, `@Activate`, `@Deactivate`, `@Reference`). Never use Felix SCR annotations.
+- **OSGi metatype configs**: this codebase also uses `org.osgi.service.metatype.annotations` (`@Designate`, `@ObjectClassDefinition`, `@AttributeDefinition`) for servlet configuration.
 - **Jakarta namespace**: the codebase uses `jakarta.servlet.*` and `jakarta.json.*`. Do not mix in `javax.servlet.*` (it is listed as optional/provided for legacy compat only).
 - **No public API**: everything lives under `org.apache.sling.servlets.get.impl`. There is no public package export; do not add one without intentional design.
 - **Shading**: `org.apache.jackrabbit.util` is relocated to `org.apache.sling.servlets.get.impl.jackrabbit` at package time. Never import the original class name in production code that will run inside the bundle.
@@ -83,7 +84,7 @@ target/                         Build output — do not edit
 
 - Framework: **JUnit 4** (`junit:junit`). Do not add JUnit 5 without updating the parent POM.
 - Test classes live under `src/test/java/` mirroring the production package path.
-- Mocking: **Mockito 3** and **Sling Mock** (`org.apache.sling.testing.sling-mock.junit4`).
+- Mocking/test support: **Mockito 3**, **Sling Mock** (`org.apache.sling.testing.sling-mock.junit4` and sling-mock-oak), plus Sling servlet helpers for request/response tests.
 - Run all tests: `mvn test`
 - Run one class: `mvn test -Dtest=ClassName`
 - Reports land in `target/surefire-reports/`.
@@ -92,6 +93,7 @@ target/                         Build output — do not edit
 # Gotchas
 
 - **Shaded JAR vs. plain JAR**: `maven-shade-plugin` runs at `package` phase and produces the final artifact. `target/original-*.jar` is the pre-shade output. Deploy the shaded JAR to OSGi, not the original.
+- **Shaded sources are also generated**: both shaded and `original-*` source JARs are produced during packaging.
 - **`bnd.bnd` optional imports**: `javax.jcr` is marked `resolution:=optional`. Code that uses JCR must guard against missing packages at runtime.
 - **Sling API 3.x**: This bundle targets `org.apache.sling.api` 3.0.0, which uses `SlingJakartaHttpServletRequest`/`SlingJakartaHttpServletResponse`. These differ from the older `SlingHttpServletRequest` — don't mix them.
 - **Parent POM version drift**: Many dependency versions (JUnit, Mockito, OSGi annotations) are managed by `sling-bundle-parent`. Check the parent before adding explicit versions.
