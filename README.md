@@ -47,7 +47,7 @@ mvn apache-rat:check
 mvn install -DskipTests
 ```
 
-To deploy to a running Sling instance:
+To deploy to a running Sling instance (there is no local dev server in this module):
 
 ```bash
 mvn sling:install
@@ -60,17 +60,20 @@ mvn sling:install
 - Original (pre-shade) artifacts are also generated:
   - `target/original-org.apache.sling.servlets.get-<version>.jar`
 - Source JARs are generated for both shaded and original variants.
+- OSGi baseline comparison reports are generated under `target/baseline/`.
 
 ## Implementation notes
 
 - Uses OSGi R7 Declarative Services annotations (`org.osgi.service.component.annotations`).
 - Uses OSGi Metatype annotations (`org.osgi.service.metatype.annotations`) for servlet configuration.
-- Uses Jakarta Servlet (`jakarta.servlet`) and Jakarta JSON (`jakarta.json`) APIs.
+- Uses Jakarta Servlet (`jakarta.servlet`) and Jakarta JSON (`jakarta.json`) APIs at runtime, while keeping `javax.servlet-api` as a provided compatibility dependency.
 - Targets Sling API `3.x` (`SlingJakartaHttpServletRequest` / `SlingJakartaHttpServletResponse`).
 - Produces a shaded JAR at package time.
 - Relocates `org.apache.jackrabbit.util` to `org.apache.sling.servlets.get.impl.jackrabbit` and inlines `ISO8601`.
 - Keeps `javax.jcr` imports optional in `bnd.bnd` for environments without JCR packages.
+- Uses OWASP Java Encoder (`org.owasp.encoder`) in rendering paths.
 - Uses SLF4J (`org.slf4j`) for logging.
+- This module does not export a public API package; implementation lives under `org.apache.sling.servlets.get.impl`.
 
 ## Project layout
 
@@ -97,4 +100,5 @@ src/
       ResourceTraversor.java
   test/java/...                 JUnit 4 + Mockito + Sling Mock tests
   test/resources/               JSON fixtures (for example `data.json`, `samplefile.json`)
+target/baseline/               OSGi baseline comparison output (build-time)
 ```
