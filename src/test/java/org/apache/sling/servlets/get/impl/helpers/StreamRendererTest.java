@@ -45,6 +45,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 public class StreamRendererTest {
@@ -210,6 +211,76 @@ public class StreamRendererTest {
         StreamRenderer renderer = new StreamRenderer(true, new String[] {"/"}, sc);
         renderer.render(request, response);
         assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Mockito.verify(dispatcher).include(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void test_render_directory_indexWithoutExtension_setsHtmlContentType() throws IOException, ServletException {
+        final ServletContext sc = Mockito.mock(ServletContext.class);
+        final RequestDispatcher dispatcher = Mockito.mock(RequestDispatcher.class);
+        final SlingJakartaHttpServletRequest internalRequest = Mockito.mock(SlingJakartaHttpServletRequest.class);
+        Mockito.when(internalRequest.getRequestDispatcher(
+                        Mockito.anyString(), Mockito.any(RequestDispatcherOptions.class)))
+                .thenReturn(dispatcher);
+
+        Resource root = context.resourceResolver().getResource("/");
+        final SlingJakartaHttpServletRequest request = Builders.newRequestBuilder(root)
+                .useRequestDispatcherFrom(internalRequest)
+                .buildJakartaRequest();
+        final SlingJakartaHttpServletResponseResult response =
+                Builders.newResponseBuilder().buildJakartaResponseResult();
+
+        // index name without '.' makes the renderer include "<path>.html"
+        StreamRenderer renderer = new StreamRenderer(true, new String[] {"/"}, sc);
+        renderer.render(request, response);
+
+        assertEquals("text/html", response.getContentType());
+        Mockito.verify(dispatcher).include(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void test_render_directory_head_indexWithoutExtension_setsHtmlContentType() throws IOException {
+        final ServletContext sc = Mockito.mock(ServletContext.class);
+        final RequestDispatcher dispatcher = Mockito.mock(RequestDispatcher.class);
+        final SlingJakartaHttpServletRequest internalRequest = Mockito.mock(SlingJakartaHttpServletRequest.class);
+
+        Resource root = context.resourceResolver().getResource("/");
+        final SlingJakartaHttpServletRequest request = Builders.newRequestBuilder(root)
+                .withRequestMethod("HEAD")
+                .useRequestDispatcherFrom(internalRequest)
+                .buildJakartaRequest();
+        final SlingJakartaHttpServletResponseResult response =
+                Builders.newResponseBuilder().buildJakartaResponseResult();
+
+        StreamRenderer renderer = new StreamRenderer(true, new String[] {"/"}, sc);
+        renderer.render(request, response);
+
+        // HEAD must announce the same content type as GET and must not include anything
+        assertEquals("text/html", response.getContentType());
+        Mockito.verifyNoInteractions(dispatcher);
+    }
+
+    @Test
+    public void test_render_directory_indexWithExtension_keepsContentType() throws IOException, ServletException {
+        final ServletContext sc = Mockito.mock(ServletContext.class);
+        final RequestDispatcher dispatcher = Mockito.mock(RequestDispatcher.class);
+        final SlingJakartaHttpServletRequest internalRequest = Mockito.mock(SlingJakartaHttpServletRequest.class);
+        Mockito.when(internalRequest.getRequestDispatcher(
+                        Mockito.any(Resource.class), Mockito.any(RequestDispatcherOptions.class)))
+                .thenReturn(dispatcher);
+
+        Resource root = context.resourceResolver().getResource("/");
+        final SlingJakartaHttpServletRequest request = Builders.newRequestBuilder(root)
+                .useRequestDispatcherFrom(internalRequest)
+                .buildJakartaRequest();
+        final SlingJakartaHttpServletResponseResult response =
+                Builders.newResponseBuilder().buildJakartaResponseResult();
+
+        // index name with '.' is included as is, the content type must not be forced to text/html
+        StreamRenderer renderer = new StreamRenderer(true, new String[] {"file.txt"}, sc);
+        renderer.render(request, response);
+
+        assertNotEquals("text/html", response.getContentType());
         Mockito.verify(dispatcher).include(Mockito.any(), Mockito.any());
     }
 }

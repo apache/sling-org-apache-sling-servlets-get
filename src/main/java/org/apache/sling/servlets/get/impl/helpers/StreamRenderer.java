@@ -78,6 +78,10 @@ public class StreamRenderer implements Renderer {
     // Accept-Ranges header value
     private static final String ACCEPT_RANGES_BYTES = "bytes";
 
+    private static final String CONTENT_TYPE_APPLICATION_OCTET_STREAM = "application/octet-stream";
+
+    private static final String CONTENT_TYPE_TEXT_HTML = "text/html";
+
     /**
      * Full range marker.
      */
@@ -301,6 +305,18 @@ public class StreamRenderer implements Renderer {
 
                 setHeaders(fileRes, response);
 
+                final boolean noExtension = index.indexOf('.') < 0;
+
+                // An index resource without extension is rendered through "<path>.html", so the
+                // response is HTML. Fall back to text/html when no better content type is known,
+                // and do it before the HEAD check so that HEAD and GET report the same type.
+                if (noExtension) {
+                    String contentType = response.getContentType();
+                    if (contentType == null || contentType.startsWith(CONTENT_TYPE_APPLICATION_OCTET_STREAM)) {
+                        response.setContentType(CONTENT_TYPE_TEXT_HTML);
+                    }
+                }
+
                 if (isHeadRequest(request)) {
                     return;
                 }
@@ -311,9 +327,8 @@ public class StreamRenderer implements Renderer {
                 rdo.setReplaceSelectors("");
 
                 RequestDispatcher dispatcher;
-                if (index.indexOf('.') < 0) {
-                    String filePath = fileRes.getPath() + ".html";
-                    dispatcher = request.getRequestDispatcher(filePath, rdo);
+                if (noExtension) {
+                    dispatcher = request.getRequestDispatcher(fileRes.getPath() + ".html", rdo);
                 } else {
                     dispatcher = request.getRequestDispatcher(fileRes, rdo);
                 }
@@ -350,7 +365,7 @@ public class StreamRenderer implements Renderer {
             response.setDateHeader(HEADER_LAST_MODIFIED, modifTime);
         }
 
-        final String defaultContentType = "application/octet-stream";
+        final String defaultContentType = CONTENT_TYPE_APPLICATION_OCTET_STREAM;
         String contentType = meta.getContentType();
         if (contentType == null || defaultContentType.equals(contentType)) {
             // if repository doesn't provide a content-type, or
@@ -403,7 +418,7 @@ public class StreamRenderer implements Renderer {
 
     private void renderIndex(Resource resource, SlingJakartaHttpServletResponse response) throws IOException {
 
-        response.setContentType("text/html");
+        response.setContentType(CONTENT_TYPE_TEXT_HTML);
         response.setCharacterEncoding("UTF-8");
 
         String path = resource.getPath();
