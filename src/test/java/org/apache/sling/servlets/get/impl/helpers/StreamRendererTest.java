@@ -283,4 +283,32 @@ public class StreamRendererTest {
         assertNotEquals("text/html", response.getContentType());
         Mockito.verify(dispatcher).include(Mockito.any(), Mockito.any());
     }
+
+    @Test
+    public void test_render_directory_indexWithoutExtension_overridesExistingContentType()
+            throws IOException, ServletException {
+        // an extensionless index that already has its own content type
+        context.build().file("index", new ByteArrayInputStream("x".getBytes()), "text/plain", 0L);
+
+        final ServletContext sc = Mockito.mock(ServletContext.class);
+        final RequestDispatcher dispatcher = Mockito.mock(RequestDispatcher.class);
+        final SlingJakartaHttpServletRequest internalRequest = Mockito.mock(SlingJakartaHttpServletRequest.class);
+        Mockito.when(internalRequest.getRequestDispatcher(
+                        Mockito.anyString(), Mockito.any(RequestDispatcherOptions.class)))
+                .thenReturn(dispatcher);
+
+        Resource root = context.resourceResolver().getResource("/");
+        final SlingJakartaHttpServletRequest request = Builders.newRequestBuilder(root)
+                .useRequestDispatcherFrom(internalRequest)
+                .buildJakartaRequest();
+        final SlingJakartaHttpServletResponseResult response =
+                Builders.newResponseBuilder().buildJakartaResponseResult();
+
+        // "/index" has its own content type, but it is rendered via "/index.html"
+        StreamRenderer renderer = new StreamRenderer(true, new String[] {"index"}, sc);
+        renderer.render(request, response);
+
+        assertEquals("text/html", response.getContentType());
+        Mockito.verify(dispatcher).include(Mockito.any(), Mockito.any());
+    }
 }

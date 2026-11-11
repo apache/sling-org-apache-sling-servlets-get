@@ -308,13 +308,10 @@ public class StreamRenderer implements Renderer {
                 final boolean noExtension = index.indexOf('.') < 0;
 
                 // An index resource without extension is rendered through "<path>.html", so the
-                // response is HTML. Fall back to text/html when no better content type is known,
-                // and do it before the HEAD check so that HEAD and GET report the same type.
+                // response is always HTML, no matter which content type setHeaders() determined for
+                // the resource itself. Do it before the HEAD check so HEAD and GET report the same type.
                 if (noExtension) {
-                    String contentType = response.getContentType();
-                    if (contentType == null || contentType.startsWith(CONTENT_TYPE_APPLICATION_OCTET_STREAM)) {
-                        response.setContentType(CONTENT_TYPE_TEXT_HTML);
-                    }
+                    response.setContentType(CONTENT_TYPE_TEXT_HTML);
                 }
 
                 if (isHeadRequest(request)) {
